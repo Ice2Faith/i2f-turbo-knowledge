@@ -29,6 +29,8 @@
 **/*.jar
 **/*.exe
 **/*.elf
+**/*.msi
+**/*.tgz
 **/*.zip
 **/*.tar.gz
 **/*.xz
