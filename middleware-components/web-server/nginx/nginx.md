@@ -359,6 +359,10 @@ http {
            # 漏洞，非法文件访问，修复：路径必须以/结尾，防止访问到其他路径
            root /home/apps/web/dist/;
            index index.html index.htm =404;
+           # 漏洞，CRLF漏洞，使用 $request_uri 替换 $uri
+		   # 但是如果在vue等单页应用中出现问题，可使用$uri 
+		   # CRLF 漏洞原理是在 302 redirect 的location 字段才有效
+		   # 在try_files中可忽略
            try_files   $request_uri $request_uri/ /index.html;
         }
 
