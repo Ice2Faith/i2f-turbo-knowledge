@@ -110,6 +110,27 @@ SELECT
 ) AS AREA_PATH
 FROM SYS_AREA a
 ```
+- 批量更新
+```sql
+merge into SYS_USER t
+USING (
+	-- 批量更新的表查询，或者union all 进来数据也可以
+    select 
+        USER_NAME,
+        PHONE,
+        BIRTH_DAY,
+        REMARK
+    from SYN_SYS_USER
+    where UPDATE_TIME > SYSDATE - INTERVAL '1' DAY
+    
+) tmp
+ON (t.USER_NAME=tmp.USER_NAME
+AND t.PHONE=tmp.PHONE
+)
+WHEN MATCHED THEN
+UPDATE SET t.BIRTH_DAY =tmp.BIRTH_DAY,
+t.REMARK =tmp.REMARK
+```
 
 ---
 ## DDL
