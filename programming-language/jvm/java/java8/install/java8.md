@@ -99,6 +99,10 @@ C:\Java\jre1.8.0_201
 - 选择-高级系统设置
 - 选择-环境变量
 - 新增如下两个变量
+    - 注意，JAVA_HOME的值，就是你的JDK安装目录
+    - 这个目录里面应该至少包含bin,include,lib几个文件夹
+    - 其中，bin目录下有java.exe,javac.exe
+    - 请确保配置的路径正确
 ```shell
 JAVA_HOME
 C:\Java\jdk1.8.0_201
