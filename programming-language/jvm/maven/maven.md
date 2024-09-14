@@ -171,4 +171,12 @@ mvn install:install-file -DgroupId=com.xxx -DartifactId=xxx -Dversion=1.0 -Dpack
 ```bash
 call mvn clean
 ```
-
+- 将jar安装到私服nexus
+- 格式
+```shell
+mvn deploy:deploy-file -DgroupId=${groupId}  -DartifactId=${artifactId}  -Dversion=${version}  -Dpackaging=jar  -Dfile=${jarFilePath} -Durl=http://${host}/repository/${repositoryId}/  -DrepositoryId=${repositoryId}
+```
+- 举例
+```shell
+mvn deploy:deploy-file -DgroupId=com.antherd  -DartifactId=sm-crypto  -Dversion=0.3.2  -Dpackaging=jar  -Dfile=.\sm-crypto-0.3.2.jar -Durl=http://10.1.4.161:8085/repository/dep_release/  -DrepositoryId=dep_release
+```
