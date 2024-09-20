@@ -444,6 +444,18 @@ feat(费用报表): 添加统计费用报表逻辑
     - 如果提交只涉及到一些无关乎代码的提交
     - 可以不勾选
 
+- 插件 images/git-commit-plugin.png
+
+![git-commit-plugin.png](images%2Fgit-commit-plugin.png)
+
+- 提交消息 images/git-commit-message.png
+
+![git-commit-message.png](images%2Fgit-commit-message.png)
+
+- 提交设置 images/git-commit-setting.png
+
+![git-commit-setting.png](images%2Fgit-commit-setting.png)
+
 ### 5.1. 检出指定分支
 
 - 右下角，点开GIT状态栏
@@ -451,11 +463,23 @@ feat(费用报表): 添加统计费用报表逻辑
 - 选择[Check]完成检出
 - 这时候，会自动切换到新检出的分支
 
+- GIT状态栏 images/git-status.png
+
+![git-status.png](images%2Fgit-status.png)
+
+- GIT状态栏菜单 images/git-status-menu.png
+
+![git-status-menu.png](images%2Fgit-status-menu.png)
+
 ### 5.2. 拉取代码
 
 - 右下角，点开GIT状态栏
 - 点击指定的分支
 - 选择[Update]完成代码拉取
+
+- Git快捷操作 images/git-shortcut.png
+
+![git-shortcut.png](images%2Fgit-shortcut.png)
 
 ### 5.3. 推送代码
 
@@ -512,6 +536,10 @@ feat(费用报表): 添加统计费用报表逻辑
 - 菜单栏-[Git]-[Uncommited Changes]-[Unstash Changes]
 - 选择一个暂存区恢复即可
 
+- GIT菜单栏 images/git-menu.png
+
+![git-menu.png](images%2Fgit-menu.png)
+
 ### 5.8. 代码还没提交，但是不想要提交刚才的修改
 
 - 如果代码还没提交，刚才改动了内容，这些改动又不需要
@@ -529,6 +557,10 @@ feat(费用报表): 添加统计费用报表逻辑
 - 找到自己的提交日志
 - 右键-[Revert Commit]
 - 这样就可以撤销修改了
+
+- GIT日志 images/git-log.png
+
+![git-log.png](images%2Fgit-log.png)
 
 ### 5.10. 代码需要回退到之前的版本
 
