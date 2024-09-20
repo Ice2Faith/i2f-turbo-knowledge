@@ -109,9 +109,9 @@
         - 除非在还未上线时，通过项目团队人员确认之后
         - 可允许少量变更直接在此分支提交变更
   - 只允许此分支合并到release/test分支
-      - 原则上，此分支涉及的内容，早已经在test分支经过了测试
-      - 所以，通常来说，只允许合并到release分支
-      - 不需要合并到test分支
+    - 原则上，此分支涉及的内容，早已经在test分支经过了测试
+    - 所以，通常来说，只允许合并到release分支
+    - 不需要合并到test分支
     - 命名规则：request/需求号-阶段号
         - 例如：request/REQ26634-1
         - 表示需求26634的第1个阶段
@@ -125,11 +125,11 @@
 - feature: 别名 develop， 特性分支/开发分支
     - 特性分支，各个开发根据自己的开发任务/需求故事完成编码
   - 严禁将test/request/publish分支合并到此分支
-      - test分支包含了不属于你这个feature分支应该包含的代码
-      - 因此不能合并
-      - request和publish分支的原因也一样
-      - feature分支，应该只能包含release/hotfix和你自己feature的代码
-      - 不要包含其他任何代码
+    - test分支包含了不属于你这个feature分支应该包含的代码
+    - 因此不能合并
+    - request和publish分支的原因也一样
+    - feature分支，应该只能包含release/hotfix和你自己feature的代码
+    - 不要包含其他任何代码
     - 只允许release/hotfix分支合并到此分支，严禁feature分支之间相互合并
         - 到出现多个feature分支之间需要协作时
         - 应该将这几个feature分支合并为一个新的feature分支
@@ -161,11 +161,11 @@
     - 如果release分支还未完成最后一次的request分支的合并时
         - 则使用最后一次request分支代替release分支（不建议）
   - 允许将此分支合并到其他任意分支
-      - 原则上来说，hotfix分支已经在线上允许
-      - 属于release分支的一部分，属于基线内容
-      - 所以，允许合并到任意分支
-      - 而hotfix分支存在的意义就是在下一次提升release基线的时候
-      - 加入之前的hotfix内容，而不是频繁的变更release基线（或许其他各种原因，导致提升基线比较麻烦）
+    - 原则上来说，hotfix分支已经在线上允许
+    - 属于release分支的一部分，属于基线内容
+    - 所以，允许合并到任意分支
+    - 而hotfix分支存在的意义就是在下一次提升release基线的时候
+    - 加入之前的hotfix内容，而不是频繁的变更release基线（或许其他各种原因，导致提升基线比较麻烦）
     - 建议删除历史分支
         - 在hotfix分支合并到release分支之后
         - 表示热修复工作已经完成
@@ -178,8 +178,8 @@
       - 建议由其中一人，先创建hotfix分支
       - 其他人员在此分支上，共同提交修复内容
       - 或者各自创建自己的hotfix分支
-          - 命名规则：hotfix/日期-姓名
-          - 例如：hotfix/240808-miler
+        - 命名规则：hotfix/日期-姓名
+        - 例如：hotfix/240808-miler
     - 分支创建
         - 如果，已经完成request分支合并到release分支后进行的热修复
             - 则从release分支创建热修复分支 hotfix/240808
@@ -191,8 +191,8 @@
     - 此分支只允许从release分支创建
     - 只允许release/feature/hotfix分支合并到此分支
   - 只允许将此分支合并到request分支
-      - 此分支，只能合并到request分支
-      - 不允许合并到其他分支，也不允许从此分支创建新分支
+    - 此分支，只能合并到request分支
+    - 不允许合并到其他分支，也不允许从此分支创建新分支
     - feature分支应该时PM/PO指定要上线的需求涉及到的内容的分支
     - 建议删除历史分支
         - 当完成合并到release之后
@@ -225,6 +225,28 @@
 - PR/PM确认是必要紧急修复的问题的话，开发团队(DevTeam)进行热修复
 - 开发者(developer)从release分支创建hotfix分支，修复问题并提交，注意同时合并到test分支
 - 验证通过后完成上线发布流程，本轮流程结束
+
+#### 3.3.1. 分支生命周期示例图 images/git-merge-graph.png
+
+![git-merge-graph.png](images%2Fgit-merge-graph.png)
+
+- 示例图解读
+- 按照时间线来说，从下往上
+- 上次预发布是在240803进行的，预发布分支为publish/240803
+- 上次上线完成前，派发了feature3,feature2,feature1三个需求
+- 同时发现了线上问题1，针对修复创建了hotfix/240803分支
+- 上次上线完成后，日常巡检，发现线上问题2，针对修复创建了hotfix/240805分支
+- 接着就是常规的feature开发和提交测试
+- 然后，确定了240808进行本次预发布，要发布的内容为feature1，feature2,feature3
+- 所以，创建了publish/240808分支
+- 同时发现上次的publish分支为publish/240803
+- 240803到240808之间存在两个hotfix分支，hotfix/240803,hotfix/240805
+- 因此将两个hotfix分支(hotfix/240803,hotfix/240805)合并到publish/240808分支
+- 同时，将要发布的三个feature分支(feature1，feature2,feature3)合并到publish/240808分支
+- 最后，上线流程发起，创建了request2分支
+- 将publish/240808分支合并进了request2分支
+- request2分支合并进入release分支
+- 完成基线确认
 
 ### 3.4. 案例讲解
 - 上次上线热修复分支
