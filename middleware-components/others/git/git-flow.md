@@ -226,7 +226,40 @@
 - 开发者(developer)从release分支创建hotfix分支，修复问题并提交，注意同时合并到test分支
 - 验证通过后完成上线发布流程，本轮流程结束
 
-#### 3.3.1. 分支生命周期示例图 images/git-merge-graph.png
+#### 3.3.1. 分支包含关系图 images/git-include-graph.png
+
+![git-include-graph.png](images%2Fgit-include-graph.png)
+
+- 关系图解读
+  - release分支，也就是基线分支
+  - 所有的修改都应该基于release分支进行修改
+  - 因此，release分支是所有分支共有的部分
+  - 每个分支都基于release分支，在此基础上进行提交更改
+  - hotfix分支，来自于release分支
+  - 是一个特别的分支，其包含release分支
+  - 内容也等同于release分支
+  - 因此，可以将hotfix分支看做release分支的特殊部分
+  - feature分支，是常见的特性修改分支
+  - 几乎所有的变更都应该变更的是feature分支，而不是其他分支
+  - publish分支作为发布分支，其包含了发布所需要的一些列feature特性分支和hotfix分支的内容
+  - 但是，遵循一个原则，一定包含所有的hotfix分支，不一定包含所有的feature分支
+  - request分支，是一个特殊的分支，用于进行项目需求管理或者里程碑的tag标签管理
+  - 其内容应该和publish分支的内容一致
+  - test分支，是一个最特殊的分支，因为test分支几乎包含了所有的提交内容
+  - 因为不管是hotfix还是feature都应该经过test测试之后才能进行publish发布
+  - 所以，test分支几乎包括了所有内容
+  - 那么，没包括的内容就是没有提交测试的内容
+  - 由此包含关系，就能够对分支的合并或者其他操作进行推理
+- 分支合并的推理
+  - 合并原则，由内向外，由少到多，兄弟相商
+  - release分支最为最内层，则可以合并到任意其他分支
+  - hotfix分支是release分支特殊的一部分，因此也可以合并到其他任意分支
+  - feature分支之间是兄弟关系，理论上严谨相互合并，避免矛盾打架，应该协商决定
+  - publish分支作为发布分支，需要将hotfix分支和目标feature分支进行合并
+  - request作为tag标签分支，直接等同于publish分支
+  - 最外层，test分支，则允许任意分支合并到test分支
+
+#### 3.3.2. 分支生命周期示例图 images/git-merge-graph.png
 
 ![git-merge-graph.png](images%2Fgit-merge-graph.png)
 
