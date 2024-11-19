@@ -28,6 +28,15 @@ STOP_CMD=
 # 是否具有专门的停止命令
 ENABLE_STOP_CMD=$BOOL_TRUE
 
+# 在执行启动或者停止命令之前执行的内容
+function beforeStart(){
+  echo "starting ..."
+}
+
+function beforeStop(){
+  echo "stopping .."
+}
+
 # 是否使用CALL函数
 ENABLE_START_CALL=$BOOL_FALSE
 ENABLE_STOP_CALL=$BOOL_FALSE
@@ -266,6 +275,8 @@ function start() {
 
   echo "" > $PID_FILE
 
+  beforeStart
+
   _p_called=$BOOL_FALSE
   if [ $_p_called == $BOOL_FALSE ];then
     if [ $ENABLE_START_CALL == $BOOL_TRUE ];then
@@ -314,6 +325,8 @@ function stop() {
       echo -e "\033[0;31m not pid found, app already stopped. \033[0m"
       return
     fi
+
+    beforeStop
 
     _p_called=$BOOL_FALSE
     if [ $_p_called == $BOOL_FALSE ];then
