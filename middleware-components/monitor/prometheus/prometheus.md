@@ -535,6 +535,12 @@ tar -xzvf mongodb_exporter-0.42.0.linux-amd64.tar.gz
 ```shell
 mv mongodb_exporter-0.42.0.linux-amd64 mongodb_exporter-0.42.0
 ```
+- 启动脚本
+```shell
+export MONGODB_USER=xxx
+export MONGODB_PASSWORD=xxx
+./mongodb_exporter --mongodb.uri=mongodb://127.0.0.1:17001 --web.listen-address=:9216
+```
 
 ----------------------------------------------------------------------------
 
@@ -579,6 +585,10 @@ tar -xzvf elasticsearch_exporter-1.8.0.freebsd-amd64.tar.gz
 ```shell
 mv elasticsearch_exporter-1.8.0.freebsd-amd64 elasticsearch_exporter-1.8.0
 ```
+- 启动脚本
+```shell
+./elasticsearch-exporter --es.uri=http://localhost:9200 --web.listen-address=:9114
+```
 
 ----------------------------------------------------------------------------
 
@@ -600,6 +610,13 @@ tar -xzvf rabbitmq_exporter_1.0.0_linux_amd64.tar.gz
 - 重命名
 ```shell
 mv rabbitmq_exporter_1.0.0_linux_amd64 rabbitmq_exporter_1.0.0
+```
+- 启动脚本
+```shell
+export RABBIT_URL=http://127.0.0.1:15672
+export RABBIT_USER=guest
+export RABBIT_PASSWORD=guest
+./rabbitmq_exporter -config-file config.example.json
 ```
 
 ----------------------------------------------------------------------------
@@ -623,6 +640,10 @@ tar -xzvf kafka_exporter-1.8.0.freebsd-amd64.tar.gz
 ```shell
 mv kafka_exporter-1.8.0.freebsd-amd64 kafka_exporter-1.8.0
 ```
+- 启动脚本
+```shell
+./kafka_exporter --kafka.server=kafka:9092 [...--kafka.server=xxx] --web.listen-address=:9308
+```
 
 ----------------------------------------------------------------------------
 
@@ -645,6 +666,11 @@ tar -xzvf oracledb_exporter.tar.gz
 ```shell
 mv oracledb_exporter oracledb_exporter-0.6.0
 ```
+- 启动脚本
+```shell
+export DATA_SOURCE_NAME=oracle://user:password@myhost:1521/service
+./oracledb_exporter --log.level error --web.listen-address 0.0.0.0:9161
+```
 
 ----------------------------------------------------------------------------
 
@@ -666,4 +692,11 @@ tar -xzvf postgres_exporter-0.16.0.freebsd-amd64.tar.gz
 - 重命名
 ```shell
 mv postgres_exporter-0.16.0.freebsd-amd64 postgres_exporter-0.16.0
+```
+- 启动脚本
+```shell
+export DATA_SOURCE_URI="localhost:5432/postgres?sslmode=disable"
+export DATA_SOURCE_USER=postgres
+export DATA_SOURCE_PASS=password
+./postgres-exporter --web.listen-address=:9187
 ```
