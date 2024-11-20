@@ -1146,6 +1146,12 @@ ntpdate -u cn.pool.ntp.org
 ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime   
 watch -n 1 'date`
 ```
+
+- 设置系统时间
+
+```shell
+date -s "2024-11-20 16:28:21"
+```
 - 性能查看
 ```shell script
 sar

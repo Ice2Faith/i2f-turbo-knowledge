@@ -22,7 +22,7 @@ BIND_PORT=9113
 WORK_DIR=
 
 # 启动与停止命令
-NGINX_URL=http://10.1.12.66:9252/nginx_status
+NGINX_URL=http://localhost:9252/nginx_status
 START_CMD="./nginx-prometheus-exporter -nginx.scrape-uri=$NGINX_URL --web.listen-address=:$BIND_PORT"
 STOP_CMD=
 

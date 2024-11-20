@@ -1,4 +1,5 @@
 # prometheus 运维监控告警平台
+
 - 是一款开源的运维监控指标采集平台
 - 常常与其他可视化软件（如grafana）结合
 - 构建可视化的运维监控告警一体化平台
@@ -11,35 +12,51 @@
 ----------------------------------------------------------------------------
 
 ## 安装
+
 - 官网
+
 ```shell
 https://prometheus.io/
 ```
+
 - 地址
+
 ```shell
 https://prometheus.io/download/
 ```
+
 - 下载
+
 ```shell
 wget https://github.com/prometheus/prometheus/releases/download/v3.0.0/prometheus-3.0.0.linux-amd64.tar.gz
 ```
+
 - 解压
+
 ```shell
 tar -xzvf prometheus-3.0.0.linux-amd64.tar.gz
 ```
+
 - 重命名
+
 ```shell
 mv prometheus-3.0.0.linux-amd64 prometheus-3.0.0
 ```
+
 - 进入路径
+
 ```shell
 cd prometheus-3.0.0
 ```
+
 - 查看配置文件
+
 ```shell
 cat prometheus.yml
 ```
+
 - 将会以中文描述添加说明到配置文件中
+
 ```yml
 # my global config
 # 全局配置
@@ -76,11 +93,11 @@ scrape_configs:
 
     # metrics_path defaults to '/metrics'
     # scheme defaults to 'http'.
-    
+
     static_configs:
       # 在target中添加具体的端点实例，比如某个service在三台服务器以负载均衡的模式部署
       # 则，这里就可以添加三台主机的地址
-      - targets: ["localhost:9090"]
+      - targets: [ "localhost:9090" ]
 ```
 
 - 统一启停脚本
@@ -88,9 +105,11 @@ scrape_configs:
   - 使用
   - 启动： ./processctl.sh start
   - 停止： ./processctl.sh stop
+
 ```shell
 vi processctl.sh
 ```
+
 ```shell
 
 # 应用名称，用于表示应用名称，仅显示使用
@@ -125,15 +144,21 @@ function beforeStop(){
   echo "stopping .."
 }
 ```
+
 - 添加执行权限
+
 ```shell
 chmod +x *.sh
 ```
+
 - 启动
+
 ```shell
 ./processctl.sh restart
 ```
+
 - 浏览器访问
+
 ```shell
 http://localhost:9090/
 ```
@@ -141,7 +166,9 @@ http://localhost:9090/
 ----------------------------------------------------------------------------
 
 ## 插件安装
+
 - 地址
+
 ```shell
 https://prometheus.io/docs/instrumenting/exporters/
 ```
@@ -149,25 +176,35 @@ https://prometheus.io/docs/instrumenting/exporters/
 ----------------------------------------------------------------------------
 
 ### 服务器监控(node_exporter)
+
 - 需要部署在被检测的主机上
 - 可以观测内存、CPU、网络、磁盘等资源情况
 - 地址
+
 ```shell
 https://prometheus.io/download/#node_exporter
 ```
+
 - 下载
+
 ```shell
 wget https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz
 ```
+
 - 解压
+
 ```shell
 tar -xzvf node_exporter-1.8.2.linux-amd64.tar.gz
 ```
+
 - 重命名
+
 ```shell
 mv node_exporter-1.8.2.linux-amd64 node_exporter-1.8.2
 ```
+
 - 进入路径
+
 ```shell
 cd node_exporter-1.8.2
 ```
@@ -177,9 +214,11 @@ cd node_exporter-1.8.2
   - 使用
   - 启动： ./processctl.sh start
   - 停止： ./processctl.sh stop
+
 ```shell
 vi processctl.sh
 ```
+
 ```shell
 
 # 应用名称，用于表示应用名称，仅显示使用
@@ -213,56 +252,85 @@ function beforeStop(){
   echo "stopping .."
 }
 ```
+
 - 添加执行权限
+
 ```shell
 chmod +x *.sh
 ```
+
 - 启动
+
 ```shell
 ./processctl.sh restart
 ```
+
 - 浏览器访问
+
 ```shell
 http://localhost:9101/metrics
 ```
+
 - 将实例添加到prometheus中
 - 编辑prometheus配置文件
+
 ```shell
 vi prometheus.yml
 ```
+
 - 在 scrape_configs 节点中添加
+
 ```yml
 scrape_configs:
   # ...
   - job_name: "node_exporter"
       static_configs:
-        - targets: ["localhost:9101"]
+        - targets: [ "localhost:9101" ]
 ```
+
 - 保存后，重启prometheus即可
 
+- 配置grafana面板
+- 直接从URL导入面板
+
+```shell
+https://grafana.com/grafana/dashboards/1860-node-exporter-full/
+```
+
+- 无需其他配置，直接使用即可
 
 ----------------------------------------------------------------------------
 
 ### Redis监控(redis_exporter)
+
 - 需要配置被监控的Redis的连接信息
 - 可以统计Redis的状态信息
 - 地址
+
 ```shell
 https://github.com/oliver006/redis_exporter/releases
 ```
+
 - 下载
+
 ```shell
 wget https://github.com/oliver006/redis_exporter/releases/download/v1.66.0/redis_exporter-v1.66.0.linux-amd64.tar.gz
 ```
+
 - 解压
+
 ```shell
 tar -xzvf redis_exporter-v1.66.0.linux-amd64.tar.gz
 ```
+
 - 重命名
+
 ```shell
 mv redis_exporter-v1.66.0.linux-amd64 redis_exporter-v1.66.0
 ```
+
 - 进入路径
+
 ```shell
 cd redis_exporter-v1.66.0
 ```
@@ -272,9 +340,11 @@ cd redis_exporter-v1.66.0
   - 使用
   - 启动： ./processctl.sh start
   - 停止： ./processctl.sh stop
+
 ```shell
 vi processctl.sh
 ```
+
 ```shell
 
 # 应用名称，用于表示应用名称，仅显示使用
@@ -311,93 +381,140 @@ function beforeStop(){
   echo "stopping .."
 }
 ```
+
 - 添加执行权限
+
 ```shell
 chmod +x *.sh
 ```
+
 - 启动
+
 ```shell
 ./processctl.sh restart
 ```
+
 - 浏览器访问
+
 ```shell
 http://localhost:9102/metrics
 ```
+
 - 将实例添加到prometheus中
 - 编辑prometheus配置文件
+
 ```shell
 vi prometheus.yml
 ```
+
 - 在 scrape_configs 节点中添加
+
 ```yml
 scrape_configs:
   # ...
   - job_name: "redis_exporter"
       static_configs:
-        - targets: ["localhost:9102"]
+        - targets: [ "localhost:9102" ]
 ```
+
 - 保存后，重启prometheus即可
 
+- 配置grafana面板
+- 直接从URL导入面板
+
+```shell
+https://grafana.com/grafana/dashboards/11835-redis-dashboard-for-prometheus-redis-exporter-helm-stable-redis-ha/
+```
+
+- 无需其他配置，直接使用即可
 
 ----------------------------------------------------------------------------
 
 ### MySQL监控(mysqld_exporter)
+
 - 需要配置被监控的数据库的连接信息
 - 可以统计数据库的状态信息
 - 地址
+
 ```shell
 https://prometheus.io/download/#mysqld_exporter
 ```
+
 - 下载
+
 ```shell
 wget https://github.com/prometheus/mysqld_exporter/releases/download/v0.16.0/mysqld_exporter-0.16.0.linux-amd64.tar.gz
 ```
+
 - 解压
+
 ```shell
 tar -xzvf mysqld_exporter-0.16.0.linux-amd64.tar.gz
 ```
+
 - 重命名
+
 ```shell
 mv mysqld_exporter-0.16.0.linux-amd64 mysqld_exporter-0.16.0
 ```
+
 - 链接数据库，先添加一个用户，专用于检测
 - 进入mysql命令行
+
 ```shell
 mysql -u root -p
 ```
+
 - 切换到mysql数据库
+
 ```sql
-use mysql
+use
+mysql
 ```
+
 ```sql
-CREATE USER 'mysql_exporter'@'localhost' IDENTIFIED BY 'xxx123456' WITH MAX_USER_CONNECTIONS 3;
-GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'mysql_exporter'@'localhost';
+CREATE
+USER 'mysql_exporter'@'localhost' IDENTIFIED BY 'xxx123456' WITH MAX_USER_CONNECTIONS 3;
+GRANT PROCESS, REPLICATION
+CLIENT,
+SELECT
+ON *.* TO 'mysql_exporter'@'localhost';
 ```
+
 - 退出mysql客户端
+
 ```sql
 exit
 ```
+
 - 进入路径
+
 ```shell
 cd mysqld_exporter-0.16.0
 ```
+
 - 添加数据库用户配置文件
+
 ```shell
 vi my.cnf
 ```
+
 ```shell
 [client]
 user=mysql_exporter
 password=xxx123456
 ```
+
 - 统一启停脚本
   - 对应变更以下内容
   - 使用
   - 启动： ./processctl.sh start
   - 停止： ./processctl.sh stop
+
 ```shell
 vi processctl.sh
 ```
+
 ```shell
 
 # 应用名称，用于表示应用名称，仅显示使用
@@ -433,32 +550,53 @@ function beforeStop(){
   echo "stopping .."
 }
 ```
+
 - 添加执行权限
+
 ```shell
 chmod +x *.sh
 ```
+
 - 启动
+
 ```shell
 ./processctl.sh restart
 ```
+
 - 浏览器访问
+
 ```shell
 http://localhost:9103/metrics
 ```
+
 - 将实例添加到prometheus中
 - 编辑prometheus配置文件
+
 ```shell
 vi prometheus.yml
 ```
+
 - 在 scrape_configs 节点中添加
+
 ```yml
 scrape_configs:
   # ...
   - job_name: "mysqld_exporter"
       static_configs:
-        - targets: ["localhost:9103"]
+        - targets: [ "localhost:9103" ]
 ```
+
 - 保存后，重启prometheus即可
+
+
+- 配置grafana面板
+- 直接从URL导入面板
+
+```shell
+https://grafana.com/grafana/dashboards/14057-mysql/
+```
+
+- 无需其他配置，直接使用即可
 
 ----------------------------------------------------------------------------
 
@@ -580,165 +718,14 @@ scrape_configs:
 
 - 保存后，重启prometheus即可
 
-----------------------------------------------------------------------------
+- 配置grafana面板
+- 直接从URL导入面板
 
-### MongoDB监控(mongodb_exporter)
-- 需要配置被监控的MongoDB的连接信息
-- 可以统计MongoDB的状态信息
-- 地址
 ```shell
-https://github.com/percona/mongodb_exporter/releases
-```
-- 下载
-```shell
-wget https://github.com/percona/mongodb_exporter/releases/download/v0.42.0/mongodb_exporter-0.42.0.linux-amd64.tar.gz
-```
-- 解压
-```shell
-tar -xzvf mongodb_exporter-0.42.0.linux-amd64.tar.gz
-```
-- 重命名
-```shell
-mv mongodb_exporter-0.42.0.linux-amd64 mongodb_exporter-0.42.0
-```
-- 启动脚本
-```shell
-export MONGODB_USER=xxx
-export MONGODB_PASSWORD=xxx
-./mongodb_exporter --mongodb.uri=mongodb://127.0.0.1:17001 --web.listen-address=:9216
+https://grafana.com/grafana/dashboards/3333-oracledb/
 ```
 
-----------------------------------------------------------------------------
-
-### 黑盒网络监控(blackbox_exporter)
-- 可以配置在任意主体上，针对目标主体的网络状态进行检测
-- 主要统计网络状态信息
-- 地址
-```shell
-https://prometheus.io/download/#blackbox_exporter
-```
-- 下载
-```shell
-wget https://github.com/prometheus/blackbox_exporter/releases/download/v0.25.0/blackbox_exporter-0.25.0.linux-amd64.tar.gz
-```
-- 解压
-```shell
-tar -xzvf blackbox_exporter-0.25.0.linux-amd64.tar.gz
-```
-- 重命名
-```shell
-mv blackbox_exporter-0.25.0.linux-amd64 blackbox_exporter-0.25.0
-```
-
-----------------------------------------------------------------------------
-
-### ElasticSearch监控(elasticsearch_exporter)
-- 需要配置被监控的ElasticSearch的连接信息
-- 可以统计ElasticSearch的状态信息
-- 地址
-```shell
-https://github.com/prometheus-community/elasticsearch_exporter/releases
-```
-- 下载
-```shell
-wget https://github.com/prometheus-community/elasticsearch_exporter/releases/download/v1.8.0/elasticsearch_exporter-1.8.0.freebsd-amd64.tar.gz
-```
-- 解压
-```shell
-tar -xzvf elasticsearch_exporter-1.8.0.freebsd-amd64.tar.gz
-```
-- 重命名
-```shell
-mv elasticsearch_exporter-1.8.0.freebsd-amd64 elasticsearch_exporter-1.8.0
-```
-- 启动脚本
-```shell
-./elasticsearch-exporter --es.uri=http://localhost:9200 --web.listen-address=:9114
-```
-
-----------------------------------------------------------------------------
-
-### RabbitMQ监控(rabbitmq_exporter)
-- 需要配置被监控的RabbitMQ的连接信息
-- 可以统计RabbitMQ的状态信息
-- 地址
-```shell
-https://github.com/kbudde/rabbitmq_exporter/releases
-```
-- 下载
-```shell
-wget https://github.com/kbudde/rabbitmq_exporter/releases/download/v1.0.0/rabbitmq_exporter_1.0.0_linux_amd64.tar.gz
-```
-- 解压
-```shell
-tar -xzvf rabbitmq_exporter_1.0.0_linux_amd64.tar.gz
-```
-- 重命名
-```shell
-mv rabbitmq_exporter_1.0.0_linux_amd64 rabbitmq_exporter_1.0.0
-```
-- 启动脚本
-```shell
-export RABBIT_URL=http://127.0.0.1:15672
-export RABBIT_USER=guest
-export RABBIT_PASSWORD=guest
-./rabbitmq_exporter -config-file config.example.json
-```
-
-----------------------------------------------------------------------------
-
-### Kafka监控(rabbitmq_exporter)
-- 需要配置被监控的Kafka的连接信息
-- 可以统计Kafka的状态信息
-- 地址
-```shell
-https://github.com/danielqsj/kafka_exporter/releases
-```
-- 下载
-```shell
-wget https://github.com/danielqsj/kafka_exporter/releases/download/v1.8.0/kafka_exporter-1.8.0.freebsd-amd64.tar.gz
-```
-- 解压
-```shell
-tar -xzvf kafka_exporter-1.8.0.freebsd-amd64.tar.gz
-```
-- 重命名
-```shell
-mv kafka_exporter-1.8.0.freebsd-amd64 kafka_exporter-1.8.0
-```
-- 启动脚本
-```shell
-./kafka_exporter --kafka.server=kafka:9092 [...--kafka.server=xxx] --web.listen-address=:9308
-```
-
-----------------------------------------------------------------------------
-
-### Postgres监控(postgres_exporter)
-- 需要配置被监控的Postgres的连接信息
-- 可以统计Postgres的状态信息
-- 地址
-```shell
-https://github.com/prometheus-community/postgres_exporter/releases/
-```
-- 下载
-```shell
-wget https://github.com/prometheus-community/postgres_exporter/releases/download/v0.16.0/postgres_exporter-0.16.0.freebsd-amd64.tar.gz
-```
-- 解压
-```shell
-tar -xzvf postgres_exporter-0.16.0.freebsd-amd64.tar.gz
-```
-- 重命名
-```shell
-mv postgres_exporter-0.16.0.freebsd-amd64 postgres_exporter-0.16.0
-```
-- 启动脚本
-```shell
-export DATA_SOURCE_URI="localhost:5432/postgres?sslmode=disable"
-export DATA_SOURCE_USER=postgres
-export DATA_SOURCE_PASS=password
-./postgres-exporter --web.listen-address=:9187
-```
+- 无需其他配置，直接使用即可
 
 ----------------------------------------------------------------------------
 
@@ -804,9 +791,456 @@ vi prometheus.yml
 ```yml
 scrape_configs:
   # ...
-  - job_name: "app.jar"
+  - job_name: "jmx"
       static_configs:
         - targets: [ "localhost:12345" ]
+          labels:
+            instance: 'java-app'
+        - targets: [ "localhost:12346" ]
+          labels:
+            instance: 'java-svc'
+        - targets: [ "localhost:12347" ]
+          labels:
+            instance: 'java-gateway'
 ```
 
 - 保存后，重启prometheus即可
+
+- 配置grafana面板
+- 直接从URL导入面板
+
+```shell
+https://grafana.com/grafana/dashboards/14845-jmx-dashboard-basic/
+```
+
+- 进入面板后，点击[job]输入框，输入jmx即可
+- 下面介绍，永久修改此面板默认值为jmx
+- 进入面板
+- 点击右上角[Edit]按钮
+- 点击右上角刚变成的[Settings]按钮
+- 切换到[Variables]页面
+- 点击第一行[job]
+- 找到[Query options]板块
+- 找到[Metric]表单项
+- 修改为[jvm_runtime_info]
+- 找到[Label filters]表单项
+- 填写等号左边为[job]
+- 填写等号右边为[jmx]
+- 拉倒最下面，点击[Back to list]
+- 点击右上角[Back to dashboard]
+- 可以看到，job的默认值已经变成了[jmx]
+- 点击右上角[Save dashboard]
+- 在弹出框中，点击[Save]
+- 完成配置
+
+----------------------------------------------------------------------------
+
+### Nginx监控(nginx-prometheus-exporter)
+
+- 需要配置被监控的Nginx的连接信息
+- 可以统计Nginx的状态信息
+
+- 前提条件
+- nginx有启用http_stub_status_module
+- 此条命令执行有输出，则已经启用了
+
+```shell
+./nginx -V 2>&1 | grep -o with-http_stub_status_module
+```
+
+- 如果没有输出，则没有启用，需要重新编译nginx
+- 这部分，详细细节参考 nginx.md
+
+```shell
+./configure --prefix=/usr/local/nginx --with-http_stub_status_module
+# 如果已经有了nginx，那就下面这句，只编译不安装，手动覆盖nginx文件
+make
+# 如果是全新安装，则可以编译并安装
+make & make install
+```
+
+- 就当已经具备条件了，那继续往下进行
+
+- 查找nginx所在路径
+
+```shell
+ps -ef | grep nginx
+lsof -p 刚查到的进程PID | grep cwd
+cd 刚查到的nginx路径
+```
+
+- 编辑nginx配置文件，添加一个location
+- 其中，location的地址无所谓
+- 但是location内部的stub_status不能改变
+
+```shell
+vi conf/nginx.conf
+```
+
+```shell
+http {
+  ...
+  server {
+    ...
+    location /nginx_status {
+       stub_status;
+    }
+  }
+}
+```
+
+- 保存并重载nginx
+
+```shell
+./sbin/nginx -s reload
+```
+
+- 访问链接
+
+```shell
+http://localhost:8080/nginx_status
+```
+
+- 页面显示结果应该大致如下
+
+```text
+Active connections: 1 
+server accepts handled requests
+ 121 121 388 
+Reading: 0 Writing: 1 Waiting: 0 
+```
+
+- 安装 exporter
+- 地址
+
+```shell
+https://github.com/nginxinc/nginx-prometheus-exporter/releases
+```
+
+- 下载
+
+```shell
+wget https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.3.0/nginx-prometheus-exporter_1.3.0_linux_amd64.tar.gz
+```
+
+- 解压
+
+```shell
+mkdir nginx-prometheus-exporter_1.3.0
+tar -xzvf nginx-prometheus-exporter_1.3.0_linux_amd64.tar.gz -C nginx-prometheus-exporter_1.3.0
+```
+
+- 进入目录
+
+```shell
+cd nginx-prometheus-exporter_1.3.0
+```
+
+- 统一启停脚本
+  - 对应变更以下内容
+  - 使用
+  - 启动： ./processctl.sh start
+  - 停止： ./processctl.sh stop
+
+```shell
+vi processctl.sh
+```
+
+```shell
+
+# 应用名称，用于表示应用名称，仅显示使用
+APP_NAME=nginx-prometheus-exporter 
+
+# 进程名称，用于ps查找进程的关键字
+PROCESS_NAME=nginx-prometheus-exporter 
+# 进程绑定的端口，用于netstat查找进程
+BIND_PORT=9113
+
+# 工作路径，脚本开始运行时候，将会先cd进入此路径
+WORK_DIR=
+
+# 启动与停止命令
+NGINX_URL=http://localhost:8080/nginx_status
+START_CMD="./nginx-prometheus-exporter -nginx.scrape-uri=$NGINX_URL --web.listen-address=:$BIND_PORT"
+STOP_CMD=
+
+# 是否使用nohup后台运行启动命令
+ENABLE_NOHUP=$BOOL_TRUE
+
+# 是否具有专门的停止命令
+ENABLE_STOP_CMD=$BOOL_FALSE
+
+# 在执行启动或者停止命令之前执行的内容
+function beforeStart(){
+  echo nginx-prometheus-exporter started on web : http://localhost:$BIND_PORT/
+  echo "starting ..."
+}
+
+function beforeStop(){
+  echo "stopping .."
+}
+```
+
+- 添加执行权限
+
+```shell
+chmod +x *.sh
+```
+
+- 启动
+
+```shell
+./processctl.sh restart
+```
+
+- 浏览器访问
+
+```shell
+http://localhost:9103/metrics
+```
+
+- 将实例添加到prometheus中
+- 编辑prometheus配置文件
+
+```shell
+vi prometheus.yml
+```
+
+- 在 scrape_configs 节点中添加
+
+```yml
+scrape_configs:
+  # ...
+  - job_name: "nginx_exporter"
+      static_configs:
+        - targets: [ "localhost:9113" ]
+```
+
+- 保存后，重启prometheus即可
+
+- 配置grafana面板
+- 直接从URL导入面板
+
+```shell
+https://grafana.com/grafana/dashboards/14900-nginx/
+```
+
+- 无需其他配置，直接使用即可
+
+----------------------------------------------------------------------------
+
+### MongoDB监控(mongodb_exporter)
+
+- 需要配置被监控的MongoDB的连接信息
+- 可以统计MongoDB的状态信息
+- 地址
+
+```shell
+https://github.com/percona/mongodb_exporter/releases
+```
+
+- 下载
+
+```shell
+wget https://github.com/percona/mongodb_exporter/releases/download/v0.42.0/mongodb_exporter-0.42.0.linux-amd64.tar.gz
+```
+
+- 解压
+
+```shell
+tar -xzvf mongodb_exporter-0.42.0.linux-amd64.tar.gz
+```
+
+- 重命名
+
+```shell
+mv mongodb_exporter-0.42.0.linux-amd64 mongodb_exporter-0.42.0
+```
+
+- 启动脚本
+
+```shell
+export MONGODB_USER=xxx
+export MONGODB_PASSWORD=xxx
+./mongodb_exporter --mongodb.uri=mongodb://127.0.0.1:17001 --web.listen-address=:9216
+```
+
+----------------------------------------------------------------------------
+
+### 黑盒网络监控(blackbox_exporter)
+
+- 可以配置在任意主体上，针对目标主体的网络状态进行检测
+- 主要统计网络状态信息
+- 地址
+
+```shell
+https://prometheus.io/download/#blackbox_exporter
+```
+
+- 下载
+
+```shell
+wget https://github.com/prometheus/blackbox_exporter/releases/download/v0.25.0/blackbox_exporter-0.25.0.linux-amd64.tar.gz
+```
+
+- 解压
+
+```shell
+tar -xzvf blackbox_exporter-0.25.0.linux-amd64.tar.gz
+```
+
+- 重命名
+
+```shell
+mv blackbox_exporter-0.25.0.linux-amd64 blackbox_exporter-0.25.0
+```
+
+----------------------------------------------------------------------------
+
+### ElasticSearch监控(elasticsearch_exporter)
+
+- 需要配置被监控的ElasticSearch的连接信息
+- 可以统计ElasticSearch的状态信息
+- 地址
+
+```shell
+https://github.com/prometheus-community/elasticsearch_exporter/releases
+```
+
+- 下载
+
+```shell
+wget https://github.com/prometheus-community/elasticsearch_exporter/releases/download/v1.8.0/elasticsearch_exporter-1.8.0.freebsd-amd64.tar.gz
+```
+
+- 解压
+
+```shell
+tar -xzvf elasticsearch_exporter-1.8.0.freebsd-amd64.tar.gz
+```
+
+- 重命名
+
+```shell
+mv elasticsearch_exporter-1.8.0.freebsd-amd64 elasticsearch_exporter-1.8.0
+```
+
+- 启动脚本
+
+```shell
+./elasticsearch-exporter --es.uri=http://localhost:9200 --web.listen-address=:9114
+```
+
+----------------------------------------------------------------------------
+
+### RabbitMQ监控(rabbitmq_exporter)
+
+- 需要配置被监控的RabbitMQ的连接信息
+- 可以统计RabbitMQ的状态信息
+- 地址
+
+```shell
+https://github.com/kbudde/rabbitmq_exporter/releases
+```
+
+- 下载
+
+```shell
+wget https://github.com/kbudde/rabbitmq_exporter/releases/download/v1.0.0/rabbitmq_exporter_1.0.0_linux_amd64.tar.gz
+```
+
+- 解压
+
+```shell
+tar -xzvf rabbitmq_exporter_1.0.0_linux_amd64.tar.gz
+```
+
+- 重命名
+
+```shell
+mv rabbitmq_exporter_1.0.0_linux_amd64 rabbitmq_exporter_1.0.0
+```
+
+- 启动脚本
+
+```shell
+export RABBIT_URL=http://127.0.0.1:15672
+export RABBIT_USER=guest
+export RABBIT_PASSWORD=guest
+./rabbitmq_exporter -config-file config.example.json
+```
+
+----------------------------------------------------------------------------
+
+### Kafka监控(rabbitmq_exporter)
+
+- 需要配置被监控的Kafka的连接信息
+- 可以统计Kafka的状态信息
+- 地址
+
+```shell
+https://github.com/danielqsj/kafka_exporter/releases
+```
+
+- 下载
+
+```shell
+wget https://github.com/danielqsj/kafka_exporter/releases/download/v1.8.0/kafka_exporter-1.8.0.freebsd-amd64.tar.gz
+```
+
+- 解压
+
+```shell
+tar -xzvf kafka_exporter-1.8.0.freebsd-amd64.tar.gz
+```
+
+- 重命名
+
+```shell
+mv kafka_exporter-1.8.0.freebsd-amd64 kafka_exporter-1.8.0
+```
+
+- 启动脚本
+
+```shell
+./kafka_exporter --kafka.server=kafka:9092 [...--kafka.server=xxx] --web.listen-address=:9308
+```
+
+----------------------------------------------------------------------------
+
+### Postgres监控(postgres_exporter)
+
+- 需要配置被监控的Postgres的连接信息
+- 可以统计Postgres的状态信息
+- 地址
+
+```shell
+https://github.com/prometheus-community/postgres_exporter/releases/
+```
+
+- 下载
+
+```shell
+wget https://github.com/prometheus-community/postgres_exporter/releases/download/v0.16.0/postgres_exporter-0.16.0.freebsd-amd64.tar.gz
+```
+
+- 解压
+
+```shell
+tar -xzvf postgres_exporter-0.16.0.freebsd-amd64.tar.gz
+```
+
+- 重命名
+
+```shell
+mv postgres_exporter-0.16.0.freebsd-amd64 postgres_exporter-0.16.0
+```
+
+- 启动脚本
+
+```shell
+export DATA_SOURCE_URI="localhost:5432/postgres?sslmode=disable"
+export DATA_SOURCE_USER=postgres
+export DATA_SOURCE_PASS=password
+./postgres-exporter --web.listen-address=:9187
+```
