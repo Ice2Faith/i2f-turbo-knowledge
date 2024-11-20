@@ -11,22 +11,25 @@ BOOL_FALSE=0
 Option=$1
 
 # 应用名称，用于表示应用名称，仅显示使用
-APP_NAME=noappname
+APP_NAME=grafana
 
 # 进程名称，用于ps查找进程的关键字
-PROCESS_NAME=
+PROCESS_NAME=grafana-server
 # 进程绑定的端口，用于netstat查找进程
-BIND_PORT=
+BIND_PORT=9200
 
 # 工作路径，脚本开始运行时候，将会先cd进入此路径
 WORK_DIR=
 
 # 启动与停止命令
-START_CMD=
+START_CMD="./grafana-server"
 STOP_CMD=
 
+# 是否使用nohup后台运行启动命令
+ENABLE_NOHUP=$BOOL_TRUE
+
 # 是否具有专门的停止命令
-ENABLE_STOP_CMD=$BOOL_TRUE
+ENABLE_STOP_CMD=$BOOL_FALSE
 
 # 在执行启动或者停止命令之前执行的内容
 function beforeStart(){
@@ -50,9 +53,6 @@ function startCall() {
 function stopCall() {
   echo 'stop shell ...'
 }
-
-# 是否使用nohup后台运行启动命令
-ENABLE_NOHUP=$BOOL_TRUE
 
 # 查询日志的最后多少行
 TAIL_LOG_LINES=2000
@@ -203,7 +203,7 @@ function getPid() {
         cleanFuncParams
         _func_arg1=$_p_proces_name
         _func_ret=
-        findPidByJarName
+        findPidByProcessName
         _p_pid=$_func_ret
         echo -e "\033[0;34m process name \033[0m find pid= \033[0;34m $_p_pid \033[0m"
     fi
@@ -281,7 +281,7 @@ function start() {
   if [ $_p_called == $BOOL_FALSE ];then
     if [ $ENABLE_START_CALL == $BOOL_TRUE ];then
         _p_called=$BOOL_TRUE
-        startCall;;
+        startCall
         echo -e "\033[0;34m call \033[0m start ..."
     fi
   fi
@@ -321,7 +321,7 @@ function stop() {
     getPid
     _p_pid=$_func_ret
 
-    if [ ! -d ${_p_pid} ]; then
+   if [ "$_p_pid" = "" ];then
       echo -e "\033[0;31m not pid found, app already stopped. \033[0m"
       return
     fi
@@ -332,13 +332,13 @@ function stop() {
     if [ $_p_called == $BOOL_FALSE ];then
       if [ $ENABLE_STOP_CALL == $BOOL_TRUE ];then
           _p_called=$BOOL_TRUE
-          stopCall;;
+          stopCall
           echo -e "\033[0;34m call \033[0m stop ."
       fi
     fi
 
     if [ $_p_called == $BOOL_FALSE ];then
-      if [ ENABLE_STOP_CMD == $BOOL_TRUE ];then
+      if [ $ENABLE_STOP_CMD == $BOOL_TRUE ];then
         _p_called=$BOOL_TRUE
         $STOP_CMD
         echo -e "\033[0;34m cmd \033[0m stop ."
@@ -460,7 +460,7 @@ function prepareContext(){
 function printContext(){
       # 打印基本配置信息
       echo "-----------------------"
-      echo -e "\033[0;34m AppName     \033[0m : $APP_ANEM"
+      echo -e "\033[0;34m AppName     \033[0m : $APP_NAME"
       echo -e "\033[0;34m Option      \033[0m : $Option"
       echo -e "\033[0;34m WorkDir     \033[0m : $WORK_DIR"
       echo -e "\033[0;34m LogDir      \033[0m : $LOG_DIR"
