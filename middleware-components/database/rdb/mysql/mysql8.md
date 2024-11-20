@@ -58,6 +58,11 @@ mysql -uroot -p
 ```shell script
 set global validate_password.policy=0;  #修改密码安全策略为低（只校验密码长度，至少8位）。
 set global validate_password.length=1;
+
+-- 如果上面这两句报错，换成下面这两句
+set global validate_password_policy=0;  #修改密码安全策略为低（只校验密码长度，至少8位）。
+set global validate_password_length=1;
+
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'xxx123456';
 ```
 - 授予远程权限

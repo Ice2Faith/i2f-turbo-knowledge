@@ -889,6 +889,13 @@ zip [zip包名] [文件列表]
 zip app.zip app
 zip app.zip com mapper
 ```
+
+- xz格式压缩
+
+```shell script
+xz -z [...文件名列表]
+xz -z app.log
+```
 - xz格式解压
 ```shell script
 xz -d app.xz
