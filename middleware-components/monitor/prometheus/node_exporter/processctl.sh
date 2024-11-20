@@ -33,6 +33,7 @@ ENABLE_STOP_CMD=$BOOL_FALSE
 
 # 在执行启动或者停止命令之前执行的内容
 function beforeStart(){
+  echo node_exporter started on web : http://localhost:$BIND_PORT/
   echo "starting ..."
 }
 

@@ -70,65 +70,52 @@ PROVISIONING_CFG_DIR=$GRAFANA_HOME/conf/provisioning
 #pid存放路径，自己手动建好
 PID_FILE_DIR=$GRAFANA_HOME/bin/pid.grafana
 ```
-- 编写启动脚本
+
+- 统一启停脚本
+  - 对应变更以下内容
+  - 使用
+  - 启动： ./processctl.sh start
+  - 停止： ./processctl.sh stop
 ```shell
-vi start.sh
+vi processctl.sh
 ```
 ```shell
-# default web port 9090
-WEB_PORT=9200
 
-CONFIG_FILE=./grafana.cnf
+# 应用名称，用于表示应用名称，仅显示使用
+APP_NAME=grafana
 
-PID_FILE=pid.grafana
-LOG_FILE=log.grafana
-
-echo grafana starting ...
-
-cd ../
-export GRAFANA_HOME=`pwd`
-export GF_SERVER_HTTP_PORT=$WEB_PORT
-cd bin
-nohup ./grafana-server --config=$CONFIG_FILE > $LOG_FILE 2>&1 & echo $! > $PID_FILE
-
-echo grafana started on web : http://localhost:$WEB_PORT/
-```
-- 编写停止脚本
-```shell
-vi stop.sh
-```
-```shell
-_p_pid=
-
-PID_FILE=pid.grafana
+# 进程名称，用于ps查找进程的关键字
 PROCESS_NAME=grafana-server
+# 进程绑定的端口，用于netstat查找进程
+BIND_PORT=9200
 
-if [[ -n "${PID_FILE}" ]]; then
-  _p_pid=$(cat ${PID_FILE})
-  echo -e "\033[0;34m pid file \033[0m  find pid= \033[0;34m $_p_pid \033[0m "
-fi
+# 工作路径，脚本开始运行时候，将会先cd进入此路径
+WORK_DIR=
 
-if [[ -n "${_p_pid}" ]]; then
-  _p_pc=`ps -ef | grep -v grep | awk '{print $2}' | grep $_p_pid | wc -l`
-  if [ "$_p_pc" == "0" ]; then
-    _p_pid=
-  fi
-fi
+# 启动与停止命令
+CONFIG_FILE=./grafana.cnf
+START_CMD="./grafana-server --config=$CONFIG_FILE"
+STOP_CMD=
 
-if [ "${_p_pid}" == "" ]; then
-  _p_pid=`ps -ef | grep -v grep | grep $PROCESS_NAME | awk '{print $2}'`
-  echo -e "\033[0;34m process name \033[0m  find pid= \033[0;34m $_p_pid \033[0m "
-fi
+# 是否使用nohup后台运行启动命令
+ENABLE_NOHUP=$BOOL_TRUE
 
-if [ "${_p_pid}" == "" ]; then
-  echo process has already stoped.
-  exit
-fi
+# 是否具有专门的停止命令
+ENABLE_STOP_CMD=$BOOL_FALSE
 
-echo kill process $_p_pid ...
-kill -9 $_p_pid
+# 在执行启动或者停止命令之前执行的内容
+function beforeStart(){
+  cd ../
+  export GRAFANA_HOME=`pwd`
+  export GF_SERVER_HTTP_PORT=$BIND_PORT
+  cd bin
+  echo grafana started on web : http://localhost:$BIND_PORT/
+  echo "starting ..."
+}
 
-echo killed process $_p_pid .
+function beforeStop(){
+  echo "stopping .."
+}
 ```
 - 添加执行权限
 ```shell
@@ -136,7 +123,7 @@ chmod +x *.sh
 ```
 - 启动服务
 ```shell
-./start.sh
+./processctl.sh restart
 ```
 - 访问链接
 ```shell

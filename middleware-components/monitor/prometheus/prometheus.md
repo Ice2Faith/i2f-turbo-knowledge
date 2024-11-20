@@ -82,59 +82,48 @@ scrape_configs:
       # 则，这里就可以添加三台主机的地址
       - targets: ["localhost:9090"]
 ```
+
+- 统一启停脚本
+  - 对应变更以下内容
+  - 使用
+  - 启动： ./processctl.sh start
+  - 停止： ./processctl.sh stop
 ```shell
-vi start.sh
+vi processctl.sh
 ```
 ```shell
-# default web port 9090
-WEB_PORT=9090
 
-CONFIG_FILE=./prometheus.yml
+# 应用名称，用于表示应用名称，仅显示使用
+APP_NAME=prometheus
 
-PID_FILE=pid.prometheus
-LOG_FILE=log.prometheus
-
-echo prometheus starting ...
-nohup ./prometheus --web.enable-lifecycle --web.listen-address=:$WEB_PORT --config.file=$CONFIG_FILE > $LOG_FILE 2>&1 & echo $! > $PID_FILE
-
-echo prometheus started on web : http://localhost:$WEB_PORT/
-```
-- 编写停止脚本
-```shell
-vi stop.sh
-```
-```shell
-_p_pid=
-
-PID_FILE=pid.prometheus
+# 进程名称，用于ps查找进程的关键字
 PROCESS_NAME=prometheus
+# 进程绑定的端口，用于netstat查找进程
+BIND_PORT=9090
 
-if [[ -n "${PID_FILE}" ]]; then
-  _p_pid=$(cat ${PID_FILE})
-  echo -e "\033[0;34m pid file \033[0m  find pid= \033[0;34m $_p_pid \033[0m "
-fi
+# 工作路径，脚本开始运行时候，将会先cd进入此路径
+WORK_DIR=
 
-if [[ -n "${_p_pid}" ]]; then
-  _p_pc=`ps -ef | grep -v grep | awk '{print $2}' | grep $_p_pid | wc -l`
-  if [ "$_p_pc" == "0" ]; then
-    _p_pid=
-  fi
-fi
+# 启动与停止命令
+CONFIG_FILE=./prometheus.yml
+START_CMD="./prometheus --web.enable-lifecycle --web.listen-address=:$BIND_PORT --config.file=$CONFIG_FILE"
+STOP_CMD=
 
-if [ "${_p_pid}" == "" ]; then
-  _p_pid=`ps -ef | grep -v grep | grep $PROCESS_NAME | awk '{print $2}'`
-  echo -e "\033[0;34m process name \033[0m  find pid= \033[0;34m $_p_pid \033[0m "
-fi
+# 是否使用nohup后台运行启动命令
+ENABLE_NOHUP=$BOOL_TRUE
 
-if [ "${_p_pid}" == "" ]; then
-  echo process has already stoped.
-  exit
-fi
+# 是否具有专门的停止命令
+ENABLE_STOP_CMD=$BOOL_FALSE
 
-echo kill process $_p_pid ...
-kill -9 $_p_pid
+# 在执行启动或者停止命令之前执行的内容
+function beforeStart(){
+  echo prometheus started on web : http://localhost:$BIND_PORT/
+  echo "starting ..."
+}
 
-echo killed process $_p_pid .
+function beforeStop(){
+  echo "stopping .."
+}
 ```
 - 添加执行权限
 ```shell
@@ -142,7 +131,7 @@ chmod +x *.sh
 ```
 - 启动
 ```shell
-./start.sh
+./processctl.sh restart
 ```
 - 浏览器访问
 ```shell
@@ -182,58 +171,47 @@ mv node_exporter-1.8.2.linux-amd64 node_exporter-1.8.2
 ```shell
 cd node_exporter-1.8.2
 ```
-- 编辑启动脚本
+
+- 统一启停脚本
+  - 对应变更以下内容
+  - 使用
+  - 启动： ./processctl.sh start
+  - 停止： ./processctl.sh stop
 ```shell
-vi start.sh
+vi processctl.sh
 ```
 ```shell
-# default web port 9090
-WEB_PORT=9101
 
-PID_FILE=pid.node_exporter
-LOG_FILE=log.node_exporter
+# 应用名称，用于表示应用名称，仅显示使用
+APP_NAME=node_exporter
 
-echo node_exporter starting ...
-nohup ./node_exporter --web.listen-address=:$WEB_PORT > $LOG_FILE 2>&1 & echo $! > $PID_FILE
-
-echo node_exporter started on web : http://localhost:$WEB_PORT/
-```
-- 编写停止脚本
-```shell
-vi stop.sh
-```
-```shell
-_p_pid=
-
-PID_FILE=pid.node_exporter
+# 进程名称，用于ps查找进程的关键字
 PROCESS_NAME=node_exporter
+# 进程绑定的端口，用于netstat查找进程
+BIND_PORT=9101
 
-if [[ -n "${PID_FILE}" ]]; then
-  _p_pid=$(cat ${PID_FILE})
-  echo -e "\033[0;34m pid file \033[0m  find pid= \033[0;34m $_p_pid \033[0m "
-fi
+# 工作路径，脚本开始运行时候，将会先cd进入此路径
+WORK_DIR=
 
-if [[ -n "${_p_pid}" ]]; then
-  _p_pc=`ps -ef | grep -v grep | awk '{print $2}' | grep $_p_pid | wc -l`
-  if [ "$_p_pc" == "0" ]; then
-    _p_pid=
-  fi
-fi
+# 启动与停止命令
+START_CMD="./node_exporter --web.listen-address=:$BIND_PORT"
+STOP_CMD=
 
-if [ "${_p_pid}" == "" ]; then
-  _p_pid=`ps -ef | grep -v grep | grep $PROCESS_NAME | awk '{print $2}'`
-  echo -e "\033[0;34m process name \033[0m  find pid= \033[0;34m $_p_pid \033[0m "
-fi
+# 是否使用nohup后台运行启动命令
+ENABLE_NOHUP=$BOOL_TRUE
 
-if [ "${_p_pid}" == "" ]; then
-  echo process has already stoped.
-  exit
-fi
+# 是否具有专门的停止命令
+ENABLE_STOP_CMD=$BOOL_FALSE
 
-echo kill process $_p_pid ...
-kill -9 $_p_pid
+# 在执行启动或者停止命令之前执行的内容
+function beforeStart(){
+  echo node_exporter started on web : http://localhost:$BIND_PORT/
+  echo "starting ..."
+}
 
-echo killed process $_p_pid .
+function beforeStop(){
+  echo "stopping .."
+}
 ```
 - 添加执行权限
 ```shell
@@ -241,7 +219,7 @@ chmod +x *.sh
 ```
 - 启动
 ```shell
-./start.sh
+./processctl.sh restart
 ```
 - 浏览器访问
 ```shell
@@ -288,68 +266,49 @@ mv redis_exporter-v1.66.0.linux-amd64 redis_exporter-v1.66.0
 ```shell
 cd redis_exporter-v1.66.0
 ```
-- 创建密码文件
+
+- 统一启停脚本
+  - 对应变更以下内容
+  - 使用
+  - 启动： ./processctl.sh start
+  - 停止： ./processctl.sh stop
 ```shell
-vi password.cnf
+vi processctl.sh
 ```
 ```shell
-xxx123456
-```
-- 编辑启动脚本
-```shell
-vi start.sh
-```
-```shell
-# default web port 9090
-WEB_PORT=9102
 
-REDIS_ADDR=redis://localhost:6379
-REDIS_PASSWORD=./password.cnf
+# 应用名称，用于表示应用名称，仅显示使用
+APP_NAME=redis_exporter
 
-PID_FILE=pid.redis_exporter
-LOG_FILE=log.redis_exporter
-
-echo node_exporter starting ...
-nohup ./redis_exporter --redis.addr=$REDIS_ADDR --redis.password-file=$REDIS_PASSWORD --web.listen-address=:$WEB_PORT > $LOG_FILE 2>&1 & echo $! > $PID_FILE
-
-echo redis_exporter started on web : http://localhost:$WEB_PORT/
-```
-- 编写停止脚本
-```shell
-vi stop.sh
-```
-```shell
-_p_pid=
-
-PID_FILE=pid.redis_exporter
+# 进程名称，用于ps查找进程的关键字
 PROCESS_NAME=redis_exporter
+# 进程绑定的端口，用于netstat查找进程
+BIND_PORT=9102
 
-if [[ -n "${PID_FILE}" ]]; then
-  _p_pid=$(cat ${PID_FILE})
-  echo -e "\033[0;34m pid file \033[0m  find pid= \033[0;34m $_p_pid \033[0m "
-fi
+# 工作路径，脚本开始运行时候，将会先cd进入此路径
+WORK_DIR=
 
-if [[ -n "${_p_pid}" ]]; then
-  _p_pc=`ps -ef | grep -v grep | awk '{print $2}' | grep $_p_pid | wc -l`
-  if [ "$_p_pc" == "0" ]; then
-    _p_pid=
-  fi
-fi
+# 启动与停止命令
+REDIS_ADDR=redis://localhost:6379
+REDIS_PASSWORD=""
+START_CMD="./redis_exporter --redis.addr=$REDIS_ADDR --web.listen-address=:$BIND_PORT"
+STOP_CMD=
 
-if [ "${_p_pid}" == "" ]; then
-  _p_pid=`ps -ef | grep -v grep | grep $PROCESS_NAME | awk '{print $2}'`
-  echo -e "\033[0;34m process name \033[0m  find pid= \033[0;34m $_p_pid \033[0m "
-fi
+# 是否使用nohup后台运行启动命令
+ENABLE_NOHUP=$BOOL_TRUE
 
-if [ "${_p_pid}" == "" ]; then
-  echo process has already stoped.
-  exit
-fi
+# 是否具有专门的停止命令
+ENABLE_STOP_CMD=$BOOL_FALSE
 
-echo kill process $_p_pid ...
-kill -9 $_p_pid
+# 在执行启动或者停止命令之前执行的内容
+function beforeStart(){
+  echo redis_exporter started on web : http://localhost:$BIND_PORT/
+  echo "starting ..."
+}
 
-echo killed process $_p_pid .
+function beforeStop(){
+  echo "stopping .."
+}
 ```
 - 添加执行权限
 ```shell
@@ -357,7 +316,7 @@ chmod +x *.sh
 ```
 - 启动
 ```shell
-./start.sh
+./processctl.sh restart
 ```
 - 浏览器访问
 ```shell
@@ -430,61 +389,49 @@ vi my.cnf
 user=mysql_exporter
 password=xxx123456
 ```
-- 编辑启动脚本
+
+- 统一启停脚本
+  - 对应变更以下内容
+  - 使用
+  - 启动： ./processctl.sh start
+  - 停止： ./processctl.sh stop
 ```shell
-vi start.sh
+vi processctl.sh
 ```
 ```shell
-# default web port 9090
-WEB_PORT=9103
 
+# 应用名称，用于表示应用名称，仅显示使用
+APP_NAME=mysqld_exporter
+
+# 进程名称，用于ps查找进程的关键字
+PROCESS_NAME=mysqld_exporter
+# 进程绑定的端口，用于netstat查找进程
+BIND_PORT=9103
+
+# 工作路径，脚本开始运行时候，将会先cd进入此路径
+WORK_DIR=
+
+# 启动与停止命令
 MYSQL_ADDRESS=localhost:3306
 MYSQL_CONF=./my.cnf
+START_CMD="./mysqld_exporter --mysqld.address=$MYSQL_ADDRESS --config.my-cnf=$MYSQL_CONF --web.listen-address=:$BIND_PORT"
+STOP_CMD=
 
-PID_FILE=pid.mysqld_exporter
-LOG_FILE=log.mysqld_exporter
+# 是否使用nohup后台运行启动命令
+ENABLE_NOHUP=$BOOL_TRUE
 
-echo mysqld_exporter starting ...
-nohup ./mysqld_exporter --mysqld.address=$MYSQL_ADDRESS --config.my-cnf=$MYSQL_CONF --web.listen-address=:$WEB_PORT > $LOG_FILE 2>&1 & echo $! > $PID_FILE
+# 是否具有专门的停止命令
+ENABLE_STOP_CMD=$BOOL_FALSE
 
-echo mysqld_exporter started on web : http://localhost:$WEB_PORT/
-```
-- 编写停止脚本
-```shell
-vi stop.sh
-```
-```shell
-_p_pid=
+# 在执行启动或者停止命令之前执行的内容
+function beforeStart(){
+  echo mysqld_exporter started on web : http://localhost:$BIND_PORT/
+  echo "starting ..."
+}
 
-PID_FILE=pid.mysqld_exporter
-PROCESS_NAME=mysqld_exporter
-
-if [[ -n "${PID_FILE}" ]]; then
-  _p_pid=$(cat ${PID_FILE})
-  echo -e "\033[0;34m pid file \033[0m  find pid= \033[0;34m $_p_pid \033[0m "
-fi
-
-if [[ -n "${_p_pid}" ]]; then
-  _p_pc=`ps -ef | grep -v grep | awk '{print $2}' | grep $_p_pid | wc -l`
-  if [ "$_p_pc" == "0" ]; then
-    _p_pid=
-  fi
-fi
-
-if [ "${_p_pid}" == "" ]; then
-  _p_pid=`ps -ef | grep -v grep | grep $PROCESS_NAME | awk '{print $2}'`
-  echo -e "\033[0;34m process name \033[0m  find pid= \033[0;34m $_p_pid \033[0m "
-fi
-
-if [ "${_p_pid}" == "" ]; then
-  echo process has already stoped.
-  exit
-fi
-
-echo kill process $_p_pid ...
-kill -9 $_p_pid
-
-echo killed process $_p_pid .
+function beforeStop(){
+  echo "stopping .."
+}
 ```
 - 添加执行权限
 ```shell
@@ -492,7 +439,7 @@ chmod +x *.sh
 ```
 - 启动
 ```shell
-./start.sh
+./processctl.sh restart
 ```
 - 浏览器访问
 ```shell
@@ -664,9 +611,18 @@ tar -xzvf oracledb_exporter.tar.gz
 ```
 - 重命名
 ```shell
-mv oracledb_exporter oracledb_exporter-0.6.0
+mv oracledb_exporter-0.6.0.linux-amd64/ oracledb_exporter-0.6.0
 ```
-- 启动脚本
+
+- 进入路径
+```shell
+cd oracledb_exporter-0.6.0
+```
+
+- 编辑启动脚本
+  - 注意事项，密码部分如果包含特殊符号，需要进行urlEncoded转码
+  - 同时，因为命令在Linux命令行环境，如有特殊符号，也要对命令行环境转义
+
 ```shell
 export DATA_SOURCE_NAME=oracle://user:password@myhost:1521/service
 ./oracledb_exporter --log.level error --web.listen-address 0.0.0.0:9161
@@ -700,3 +656,74 @@ export DATA_SOURCE_USER=postgres
 export DATA_SOURCE_PASS=password
 ./postgres-exporter --web.listen-address=:9187
 ```
+
+----------------------------------------------------------------------------
+
+### Java进程监控(jmx_prometheus_javaagent)
+
+- 以javaagent探针的方式实现jmx监控
+- 因此以agent探针方式启动或者挂载探针都可以
+- 地址
+
+```shell
+https://github.com/prometheus/jmx_exporter
+```
+
+- 仓库地址
+
+```shell
+https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent
+```
+
+- 下载
+
+```shell
+wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/1.0.1/jmx_prometheus_javaagent-1.0.1.jar
+```
+
+- 编辑配置文件
+
+```shell
+vi config.yaml
+```
+
+```yml
+ssl: false
+lowercaseOutputName: false
+lowercaseOutputLabelNames: false
+rules:
+  - pattern: ".*"
+```
+
+- 以探针方式启动java进程
+  - 下面的12345即为暴露指标的端口
+  - config.yml即为配置文件
+
+```shell
+java -javaagent:./jmx_prometheus_javaagent-1.0.1.jar=12345:config.yaml -jar app.jar
+```
+
+- 以挂载方式
+
+```shell
+java -jar jmx_prometheus_httpserver-1.0.1.jar 12345 config.yaml
+```
+
+- 将实例添加到prometheus中
+- 编辑prometheus配置文件
+
+```shell
+vi prometheus.yml
+```
+
+- 在 scrape_configs 节点中添加
+
+```yml
+scrape_configs:
+  # ...
+  - job_name: "app.jar"
+      static_configs:
+        - targets: [ "localhost:12345" ]
+```
+
+- 保存后，重启prometheus即可

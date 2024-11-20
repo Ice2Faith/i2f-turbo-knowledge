@@ -11,18 +11,19 @@ BOOL_FALSE=0
 Option=$1
 
 # 应用名称，用于表示应用名称，仅显示使用
-APP_NAME=node_exporter
+APP_NAME=prometheus
 
 # 进程名称，用于ps查找进程的关键字
-PROCESS_NAME=node_exporter
+PROCESS_NAME=prometheus
 # 进程绑定的端口，用于netstat查找进程
-BIND_PORT=9101
+BIND_PORT=9090
 
 # 工作路径，脚本开始运行时候，将会先cd进入此路径
 WORK_DIR=
 
 # 启动与停止命令
-START_CMD="./node_exporter --web.listen-address=:$BIND_PORT"
+CONFIG_FILE=./prometheus.yml
+START_CMD="./prometheus --web.enable-lifecycle --web.listen-address=:$BIND_PORT --config.file=$CONFIG_FILE"
 STOP_CMD=
 
 # 是否使用nohup后台运行启动命令
@@ -33,6 +34,7 @@ ENABLE_STOP_CMD=$BOOL_FALSE
 
 # 在执行启动或者停止命令之前执行的内容
 function beforeStart(){
+  echo prometheus started on web : http://localhost:$BIND_PORT/
   echo "starting ..."
 }
 
