@@ -290,7 +290,8 @@ WORK_DIR=
 
 # 启动与停止命令
 REDIS_ADDR=redis://localhost:6379
-REDIS_PASSWORD=""
+export REDIS_PASSWORD=""
+# --redis.password=
 START_CMD="./redis_exporter --redis.addr=$REDIS_ADDR --web.listen-address=:$BIND_PORT"
 STOP_CMD=
 
@@ -389,7 +390,6 @@ vi my.cnf
 user=mysql_exporter
 password=xxx123456
 ```
-
 - 统一启停脚本
   - 对应变更以下内容
   - 使用
@@ -460,6 +460,125 @@ scrape_configs:
 ```
 - 保存后，重启prometheus即可
 
+----------------------------------------------------------------------------
+
+### Oracle监控(oracledb_exporter)
+
+- 需要配置被监控的Oracle的连接信息
+- 可以统计Oracle的状态信息
+- 地址
+
+```shell
+https://github.com/iamseth/oracledb_exporter/releases
+```
+
+- 下载
+
+```shell
+wget https://github.com/iamseth/oracledb_exporter/releases/download/0.6.0/oracledb_exporter-0.6.0.linux-amd64.tar.gz
+```
+
+- 解压
+
+```shell
+tar -xzvf oracledb_exporter-0.6.0.linux-amd64.tar.gz
+```
+
+- 重命名
+
+```shell
+mv oracledb_exporter-0.6.0.linux-amd64 oracledb_exporter-0.6.0
+```
+
+- 进入路径
+
+```shell
+cd oracledb_exporter-0.6.0
+```
+
+- 统一启停脚本
+  - 对应变更以下内容
+  - 使用
+  - 启动： ./processctl.sh start
+  - 停止： ./processctl.sh stop
+
+```shell
+vi processctl.sh
+```
+
+```shell
+
+# 应用名称，用于表示应用名称，仅显示使用
+APP_NAME=oracledb_exporter
+
+# 进程名称，用于ps查找进程的关键字
+PROCESS_NAME=oracledb_exporter
+# 进程绑定的端口，用于netstat查找进程
+BIND_PORT=9104
+
+# 工作路径，脚本开始运行时候，将会先cd进入此路径
+WORK_DIR=
+
+# 启动与停止命令
+# 注意事项，密码部分如果包含特殊符号，需要进行urlEncoded转码
+# 同时，因为命令在Linux命令行环境，如有特殊符号，也要对命令行环境转义
+export DATA_SOURCE_NAME=oracle://admin:xxx123456@localhost:1521/orcl
+START_CMD="./oracledb_exporter --log.level error --web.listen-address 0.0.0.0:$BIND_PORT"
+STOP_CMD=
+
+# 是否使用nohup后台运行启动命令
+ENABLE_NOHUP=$BOOL_TRUE
+
+# 是否具有专门的停止命令
+ENABLE_STOP_CMD=$BOOL_FALSE
+
+# 在执行启动或者停止命令之前执行的内容
+function beforeStart(){
+  echo oracledb_exporter started on web : http://localhost:$BIND_PORT/
+  echo "starting ..."
+}
+
+function beforeStop(){
+  echo "stopping .."
+}
+```
+
+- 添加执行权限
+
+```shell
+chmod +x *.sh
+```
+
+- 启动
+
+```shell
+./processctl.sh restart
+```
+
+- 浏览器访问
+
+```shell
+http://localhost:9103/metrics
+```
+
+- 将实例添加到prometheus中
+- 编辑prometheus配置文件
+
+```shell
+vi prometheus.yml
+```
+
+- 在 scrape_configs 节点中添加
+
+```yml
+scrape_configs:
+  # ...
+  - job_name: "oracledb_exporter"
+      static_configs:
+        - targets: [ "localhost:9104" ]
+```
+
+- 保存后，重启prometheus即可
 
 ----------------------------------------------------------------------------
 
@@ -590,42 +709,6 @@ mv kafka_exporter-1.8.0.freebsd-amd64 kafka_exporter-1.8.0
 - 启动脚本
 ```shell
 ./kafka_exporter --kafka.server=kafka:9092 [...--kafka.server=xxx] --web.listen-address=:9308
-```
-
-----------------------------------------------------------------------------
-
-### Oracle监控(oracledb_exporter)
-- 需要配置被监控的Oracle的连接信息
-- 可以统计Oracle的状态信息
-- 地址
-```shell
-https://github.com/iamseth/oracledb_exporter/releases
-```
-- 下载
-```shell
-wget https://github.com/iamseth/oracledb_exporter/releases/download/0.6.0/oracledb_exporter.tar.gz
-```
-- 解压
-```shell
-tar -xzvf oracledb_exporter.tar.gz
-```
-- 重命名
-```shell
-mv oracledb_exporter-0.6.0.linux-amd64/ oracledb_exporter-0.6.0
-```
-
-- 进入路径
-```shell
-cd oracledb_exporter-0.6.0
-```
-
-- 编辑启动脚本
-  - 注意事项，密码部分如果包含特殊符号，需要进行urlEncoded转码
-  - 同时，因为命令在Linux命令行环境，如有特殊符号，也要对命令行环境转义
-
-```shell
-export DATA_SOURCE_NAME=oracle://user:password@myhost:1521/service
-./oracledb_exporter --log.level error --web.listen-address 0.0.0.0:9161
 ```
 
 ----------------------------------------------------------------------------
