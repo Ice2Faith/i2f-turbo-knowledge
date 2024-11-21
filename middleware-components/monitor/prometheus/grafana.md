@@ -27,50 +27,10 @@ mkdir logs
 mkdir data
 mkdir plugins
 ```
-- 获取当前路径的完整路径，后面配置文件要用
-```shell
-pwd
-```
-- 比如我得到的路径是
-```shell
-/root/promethus/grafana-v11.3.0
-```
 - 进入目录
 ```shell
 cd bin
 ```
-- 创建环境变量配置文件
-```shell
-vi grafana.cnf
-```
-- 注意，下文中的 GRAFANA_HOME 请替换为上文得到的完整路径
-```shell
-#定义用户，我最开始使用grafana，不知道哪个文件授权有问题导致服务没法启动
-GRAFANA_USER=root
-#定义组 
-GRAFANA_GROUP=root
-#grafana的工作目录，tar包解压的路径
-# GRAFANA_HOME=$GRAFANA_HOME
-#grafana的日志文件，最好自己手动建好
-LOG_DIR=$GRAFANA_HOME/logs
-#grafana的数据存储路径，最好自己手动建好
-DATA_DIR=$GRAFANA_HOME/data
-#打开的最大文件数
-MAX_OPEN_FILES=10000
-#grafana的主配置文件夹
-CONF_DIR=$GRAFANA_HOME/conf
-#grafana的主配置文件
-CONF_FILE=$GRAFANA_HOME/conf/sample.ini
-RESTART_ON_UPGRADE=true
-#grafana的组件目录，自己手动建好
-PLUGINS_DIR=$GRAFANA_HOME/plugins
-#grafana的provisioning的路径，tar包解压出来就有
-PROVISIONING_CFG_DIR=$GRAFANA_HOME/conf/provisioning
-# Only used on systemd systems
-#pid存放路径，自己手动建好
-PID_FILE_DIR=$GRAFANA_HOME/bin/pid.grafana
-```
-
 - 统一启停脚本
   - 对应变更以下内容
   - 使用
@@ -93,8 +53,25 @@ BIND_PORT=9200
 WORK_DIR=
 
 # 启动与停止命令
-CONFIG_FILE=./grafana.cnf
-START_CMD="./grafana-server --config=$CONFIG_FILE"
+# 安装路径
+export GRAFANA_HOME=`realpath ../`
+# WEB端口
+export GF_SERVER_HTTP_PORT=$BIND_PORT
+#定义用户，我最开始使用grafana，不知道哪个文件授权有问题导致服务没法启动
+export GRAFANA_USER=root
+#定义组 
+export GRAFANA_GROUP=root
+#grafana的日志文件，最好自己手动建好
+export GF_PATHS_LOGS=logs
+#grafana的数据存储路径，最好自己手动建好
+export GF_PATHS_DATA=data
+#grafana的组件目录，自己手动建好
+export GF_PATHS_PLUGINS=plugins
+#grafana的provisioning的路径，tar包解压出来就有
+export GF_PATHS_PROVISIONING=conf/provisioning
+
+CONFIG_FILE=$GRAFANA_HOME/conf/defaults.ini
+START_CMD="./grafana-server --config=$CONFIG_FILE --homepath=$GRAFANA_HOME --pidfile=metas/pid.grafana-server"
 STOP_CMD=
 
 # 是否使用nohup后台运行启动命令
@@ -105,10 +82,6 @@ ENABLE_STOP_CMD=$BOOL_FALSE
 
 # 在执行启动或者停止命令之前执行的内容
 function beforeStart(){
-  cd ../
-  export GRAFANA_HOME=`pwd`
-  export GF_SERVER_HTTP_PORT=$BIND_PORT
-  cd bin
   echo grafana started on web : http://localhost:$BIND_PORT/
   echo "starting ..."
 }
@@ -186,3 +159,73 @@ https://grafana.com/grafana/dashboards/1860-node-exporter-full/
 
 ## 告警配置
 
+- 这里介绍email邮件告警的配置
+- 需要准备一个已经开通了SMTP的邮箱账号
+- 用来充当邮件的发送人
+- 下面以网易163邮箱为例
+- 打开163官网
+
+```shell
+https://mail.163.com/
+```
+
+- 登录后，上方找到[设置]-[POP3/SMTP/IMAP]
+- 找到[开启服务]-[POP3/SMTP服务]
+- 点击开启，继续按照流程完成
+- 最后，你会得到一个授权码
+- 这个授权码就是后面要用的密码
+- 先保存下来，后面使用
+- 最下面写明了基本配置
+
+```text
+服务器地址：
+  POP3服务器: pop.163.com
+  SMTP服务器: smtp.163.com
+  IMAP服务器: imap.163.com
+安全支持：
+  POP3/SMTP/IMAP服务全部支持SSL连接
+```
+
+- 一会儿就要使用SMTP服务器
+- 上面，就完成了开通一个SMTP的邮箱账号
+- 下面，开始配置grafana的发件配置
+- 进入安装路径
+
+```shell
+cd grafana-v11.3.0
+```
+
+- 编辑配置文件
+
+```shell
+vi conf/defaults.ini
+```
+
+- 找到[smtp]节点并修改以下配置
+- 注意，此类ini文件用井号或分好座位注释符号
+
+```shell
+[smtp]
+enabled = true # 开启配置
+host = smtp.163.com:25 # 163的SMTP服务器，默认25端口
+user = xxx@163.com # 你的邮箱账号
+password = "授权码" # 前面获得的邮箱授权码
+cert_file =
+key_file =
+skip_verify = false # 关闭校验
+from_address = xxx@163.com # 发件人，一般就用邮箱账号
+from_name = Grafana # 发件人名，自己定义就行
+ehlo_identity =
+startTLS_policy =
+enable_tracing = false
+```
+
+- 重启
+
+```shell
+cd bin
+./processctl.sh restart
+```
+
+- 到这里，就完成了告警发件邮箱的配置
+- 下面，开始配置邮件告警
