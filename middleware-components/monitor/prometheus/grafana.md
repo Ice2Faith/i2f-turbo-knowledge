@@ -410,3 +410,31 @@ http://localhost:9200/
 - images/grafana/19-grafana-alert-rule-list.png
 
 ![19-grafana-alert-rule-list.png](images%2Fgrafana%2F19-grafana-alert-rule-list.png)
+
+
+---------------------------------------------------------------------------------------------------------------
+
+## 其他配置
+
+### 配置二级URL路径，用于反向代理等需求
+
+- 编辑配置文件
+
+```shell
+vi conf/defaults.ini
+```
+
+- 编辑[server]节点下的如下内容
+
+```shell
+
+# 不强制域名
+enforce_domain = false
+
+# 添加二级路径，两种方式都可以，官方推荐第二种
+root_url = /grafana
+#root_url = %(protocol)s://%(domain)s:%(http_port)s/grafana
+
+# 开启二级路径
+serve_from_sub_path = true
+```
