@@ -1171,6 +1171,18 @@ cat /proc/cpuinfo | grep name | cut -f2 -d:
 lsof -p ${pid} | grep cmd
 ```
 
+- 编辑DNS主机
+
+```shell
+vi /etc/resolv.conf
+```
+
+```shell
+nameserver 114.114.114.114
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+```
+
 ## too many open files (打开的文件数过多)
 - 检查打开文件数限制
 ```shell script
@@ -1438,6 +1450,28 @@ mv CentOS-Base.repo CentOS-Base.repo.backup
 ```shell script
 mv Centos-7.repo CentOS-Base.repo
 ```
+
+- [可选]追加部分仓库配置
+
+```shell
+vi CentOS-Base.repo
+```
+
+```shell
+[centos-sclo-rh]
+name=CentOS-7 - SCLo rh
+baseurl=http://vault.centos.org/centos/7/sclo/$basearch/rh/
+gpgcheck=1
+enabled=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-SCLo
+ 
+[centos-sclo-sclo]
+name=CentOS-6.10 - SCLo sclo
+baseurl=http://vault.centos.org/centos/7/sclo/$basearch/sclo/
+gpgcheck=1
+enabled=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-SCLo
+```
 - 清理源
 ```shell script
 yum clean all
@@ -1447,6 +1481,8 @@ yum clean all
 yum makecache
 ```
 - 更新源
+  - 如非必要，请不要执行此行内容
+  - 否则可能导致底层软件包/内核更新后与现有软件不兼容
 ```shell script
 yum upgrade -y
 ```
