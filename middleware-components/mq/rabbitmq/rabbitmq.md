@@ -84,7 +84,7 @@ https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.9.5/rabbitmq-se
 - 进入安装目录
 
 ```shell
-cd /sbin
+cd sbin
 ```
 
 - 启动管理插件
@@ -148,6 +148,14 @@ tar -xzvf otp_src_24.0.tar.gz
 cd otp_src_24.0
 ```
 
+- 以下操作需要root权限
+
+- 先安装依赖
+
+```shell
+yum install ncurses-devel
+```
+
 - 编译并安装
 
 ```shell
@@ -177,44 +185,87 @@ https://github.com/rabbitmq/rabbitmq-server/releases
 - 下载
 
 ```shell
-https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.9.5/rabbitmq-server-3.9.5.tar.xz
+https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.9.5/rabbitmq-server-generic-unix-3.9.5.tar.xz
 ```
 
 - 解压
 
 ```shell
-tar -xzvf rabbitmq-server-3.9.5.tar.xz
+xz -d rabbitmq-server-generic-unix-3.9.5.tar.xz
+tar -xvf rabbitmq-server-generic-unix-3.9.5.tar 
 ```
 
 - 进入路径
 
 ```shell
-cd rabbitmq-server-3.9.5
+cd rabbitmq_server-3.9.5
 ```
 
 - 安装配置管理项
 - 进入安装目录
 
 ```shell
-cd /sbin
+cd sbin
+```
+
+- 编写启停脚本
+
+```shell
+vi processctl.sh
+```
+
+- 修改以下内容
+
+```shell
+
+# 应用名称，用于表示应用名称，仅显示使用
+APP_NAME=rabbitmq
+
+# 进程名称，用于ps查找进程的关键字
+PROCESS_NAME=rabbitmq_server
+# 进程绑定的端口，用于netstat查找进程
+BIND_PORT=15672
+
+# 工作路径，脚本开始运行时候，将会先cd进入此路径
+WORK_DIR=
+
+# 启动与停止命令
+START_CMD="./rabbitmq-server"
+STOP_CMD=
+
+# 是否使用nohup后台运行启动命令
+ENABLE_NOHUP=$BOOL_TRUE
+
+# 是否具有专门的停止命令
+ENABLE_STOP_CMD=$BOOL_FALSE
+
+# 在执行启动或者停止命令之前执行的内容
+function beforeStart(){
+  echo rabbitmq started on web : http://localhost:$BIND_PORT/
+  echo "starting ..."
+}
+
+function beforeStop(){
+  echo "stopping .."
+}
 ```
 
 - 启动管理插件
 
 ```shell
-./rabbitmq-plugins.sh enable rabbitmq_management
+./rabbitmq-plugins enable rabbitmq_management
 ```
 
 - 检查服务状态
 
 ```shell
-./rabbitmqctl.sh status
+./rabbitmqctl status
 ```
 
 - 没有启动的话，可以自己启动一下
 
 ```shell
-./rabbitmq-server.sh
+./processctl.sh restart
 ```
 
 - 浏览器访问
@@ -228,4 +279,39 @@ http://localhost:15672
 ```shell
 guest
 guest
+```
+
+- 如果出现登录报错
+
+```shell
+User can only log in via localhost
+```
+
+- 就是该用户没有远程访问权限
+- 可以根据下面的远程访问用户设置来调整
+
+
+- [可选]添加远程访问用户
+- 添加用户admin,密码123456
+
+```shell
+./rabbitmqctl add_user admin 123456
+```
+
+- 授予管理员角色
+
+```shell
+./rabbitmqctl set_user_tags admin administrator
+```
+
+- 授予远程访问权限
+
+```shell
+./rabbitmqctl set_permissions -p "/" admin ".*" ".*" ".*"
+```
+
+- 查看用户列表
+
+```shell
+./rabbitmqctl list_users
 ```
