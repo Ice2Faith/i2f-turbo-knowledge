@@ -315,3 +315,10 @@ User can only log in via localhost
 ```shell
 ./rabbitmqctl list_users
 ```
+
+- 如果没有生效
+- 请重启服务
+
+```shell
+./processctl.sh restart
+```
