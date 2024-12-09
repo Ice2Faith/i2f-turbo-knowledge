@@ -22,8 +22,25 @@ BIND_PORT=9200
 WORK_DIR=
 
 # 启动与停止命令
-CONFIG_FILE=./grafana.cnf
-START_CMD="./grafana-server --config=$CONFIG_FILE"
+# 安装路径
+export GRAFANA_HOME=`realpath ../`
+# WEB端口
+export GF_SERVER_HTTP_PORT=$BIND_PORT
+#定义用户，我最开始使用grafana，不知道哪个文件授权有问题导致服务没法启动
+export GRAFANA_USER=root
+#定义组
+export GRAFANA_GROUP=root
+#grafana的日志文件，最好自己手动建好
+export GF_PATHS_LOGS=logs
+#grafana的数据存储路径，最好自己手动建好
+export GF_PATHS_DATA=data
+#grafana的组件目录，自己手动建好
+export GF_PATHS_PLUGINS=plugins
+#grafana的provisioning的路径，tar包解压出来就有
+export GF_PATHS_PROVISIONING=conf/provisioning
+
+CONFIG_FILE=$GRAFANA_HOME/conf/defaults.ini
+START_CMD="./grafana-server --config=$CONFIG_FILE --homepath=$GRAFANA_HOME --pidfile=metas/pid.grafana-server"
 STOP_CMD=
 
 # 是否使用nohup后台运行启动命令
@@ -34,10 +51,6 @@ ENABLE_STOP_CMD=$BOOL_FALSE
 
 # 在执行启动或者停止命令之前执行的内容
 function beforeStart(){
-  cd ../
-  export GRAFANA_HOME=`pwd`
-  export GF_SERVER_HTTP_PORT=$BIND_PORT
-  cd bin
   echo grafana started on web : http://localhost:$BIND_PORT/
   echo "starting ..."
 }

@@ -173,6 +173,78 @@ http://localhost:9090/
 https://prometheus.io/docs/instrumenting/exporters/
 ```
 
+- 示例配置文件参考
+
+```yml
+# my global config
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+# - "first_rules.yml"
+# - "second_rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: "prometheus"
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: [ "localhost:9090" ]
+
+  - job_name: "node_exporter"
+    static_configs:
+      - targets: [ "localhost:9101" ]
+
+  - job_name: "redis_exporter"
+    static_configs:
+      - targets: [ "localhost:9102" ]
+
+  - job_name: "mysql_exporter"
+    static_configs:
+      - targets: [ "localhost:9103" ]
+
+  - job_name: "oracledb_exporter"
+    static_configs:
+      - targets: [ "localhost:9104" ]
+
+  - job_name: "nginx_exporter"
+    static_configs:
+      - targets: [ "localhost:9113" ]
+
+  - job_name: "grafana"
+    static_configs:
+      - targets: [ "localhost:9200" ]
+
+  - job_name: "jmx"
+    static_configs:
+      - targets: [ "localhost:12345" ]
+        labels:
+          instance: 'svc-biz'
+      - targets: [ "localhost:12346" ]
+        labels:
+          instance: 'svc-sys'
+      - targets: [ "localhost:12347" ]
+        labels:
+          instance: 'svc-job'
+      - targets: [ "localhost:12348" ]
+        labels:
+          instance: 'svc-gateway'
+```
 ----------------------------------------------------------------------------
 
 ### 服务器监控(node_exporter)
@@ -295,6 +367,12 @@ scrape_configs:
 
 ```shell
 https://grafana.com/grafana/dashboards/1860-node-exporter-full/
+```
+
+- 也可拖入文件
+
+```shell
+node_exporter/Node-xxx.json
 ```
 
 - 无需其他配置，直接使用即可
@@ -424,6 +502,12 @@ scrape_configs:
 
 ```shell
 https://grafana.com/grafana/dashboards/11835-redis-dashboard-for-prometheus-redis-exporter-helm-stable-redis-ha/
+```
+
+- 也可拖入文件
+
+```shell
+redis_exporter/Redis-xxx.json
 ```
 
 - 无需其他配置，直接使用即可
@@ -596,6 +680,12 @@ scrape_configs:
 https://grafana.com/grafana/dashboards/14057-mysql/
 ```
 
+- 也可拖入文件
+
+```shell
+mysqld_exporter/MySQL-xxx.json
+```
+
 - 无需其他配置，直接使用即可
 
 ----------------------------------------------------------------------------
@@ -725,6 +815,12 @@ scrape_configs:
 https://grafana.com/grafana/dashboards/3333-oracledb/
 ```
 
+- 也可拖入文件
+
+```shell
+oracledb_exporter/Oracledb-xxx.json
+```
+
 - 无需其他配置，直接使用即可
 
 ----------------------------------------------------------------------------
@@ -811,6 +907,12 @@ scrape_configs:
 
 ```shell
 https://grafana.com/grafana/dashboards/14845-jmx-dashboard-basic/
+```
+
+- 也可拖入文件
+
+```shell
+jmx_prometheus_javaagent/JMX-xxx.json
 ```
 
 - 进入面板后，点击[job]输入框，输入jmx即可
@@ -1023,6 +1125,12 @@ scrape_configs:
 
 ```shell
 https://grafana.com/grafana/dashboards/14900-nginx/
+```
+
+- 也可拖入文件
+
+```shell
+nginx-prometheus-exporter/Nginx-xxx.json
 ```
 
 - 无需其他配置，直接使用即可
