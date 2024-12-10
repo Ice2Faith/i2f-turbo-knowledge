@@ -15,7 +15,7 @@ CONFIG_FILE=conf/nginx.conf
 function help()
 {
     echo -e "\033[0;31m please input 1st arg:Option \033[0m"
-    echo -e "    options: \033[0;34m {up|u|down|d} \033[0m"
+    echo -e "    options: \033[0;34m {up|u|down|d|status|t} \033[0m"
     echo -e "\033[0;34m up/u    \033[0m : up server $SERVER"
     echo -e "\033[0;34m down/d     \033[0m : down server $SERVER"
     echo -e "\033[0;34m status/t     \033[0m : status for $SERVER"
