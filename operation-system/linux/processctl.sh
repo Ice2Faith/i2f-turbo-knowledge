@@ -233,12 +233,12 @@ function getPid() {
 function help()
 {
     echo -e "\033[0;31m please input 1st arg:Option \033[0m"
-    echo -e "    options: \033[0;34m {start|stop|restart|status|log} \033[0m"
-    echo -e "\033[0;34m start    \033[0m : to run process $APP_NAME"
-    echo -e "\033[0;34m stop     \033[0m : to stop process $APP_NAME"
-    echo -e "\033[0;34m restart  \033[0m : to stop and run process $APP_NAME"
-    echo -e "\033[0;34m status   \033[0m : to check run status for process $APP_NAME"
-    echo -e "\033[0;34m log      \033[0m : to lookup the log for process $APP_NAME"
+    echo -e "    options: \033[0;34m {start|u|stop|d|restart|r|status|t|log|l} \033[0m"
+    echo -e "\033[0;34m start/u    \033[0m : to run(up/p) process $APP_NAME"
+    echo -e "\033[0;34m stop/d     \033[0m : to stop(down/d) process $APP_NAME"
+    echo -e "\033[0;34m restart/r  \033[0m : to stop and run(restart/r) process $APP_NAME"
+    echo -e "\033[0;34m status/t   \033[0m : to check run status(t/status) for process $APP_NAME"
+    echo -e "\033[0;34m log/l      \033[0m : to lookup the log(log/l) for process $APP_NAME"
 
     exit 1
 }
@@ -490,13 +490,23 @@ function mainApp(){
   case $Option in
     start)
     start;;
+    u)
+    start;;
     stop)
+    stop;;
+    d)
     stop;;
     restart)
     restart;;
+    r)
+    restart;;
     status)
     status;;
+    t)
+    status;;
     log)
+    log;;
+    l)
     log;;
     *)
     help;;

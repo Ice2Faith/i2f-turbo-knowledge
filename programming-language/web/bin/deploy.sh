@@ -16,6 +16,9 @@ mv ${AppName} ${_p_bak_dir}/${_p_bak}
 if [ -e "${AppName}.tar.gz" ]; then
     echo unpack ...
     tar -xzvf ${AppName}.tar.gz > /dev/null
+elif [ -e "${AppName}.tgz" ]; then
+         echo unpack ...
+         tar -xzvf ${AppName}.tar.gz > /dev/null
 else
     echo unzip ...
     unzip ${AppName}.zip -d ${AppName} > /dev/null
