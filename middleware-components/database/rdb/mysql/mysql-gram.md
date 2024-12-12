@@ -41,6 +41,16 @@ order by rand()
 selet rownum,a.*
 from sys_user a
 ```
+
+- 如果空则取第二个
+
+```sql
+select coalesce(a.name, '无')
+from sys_user a
+
+select ifnull(a.name, '无')
+from sys_user a
+```
 - page
 ```sql
 select a.*

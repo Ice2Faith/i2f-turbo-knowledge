@@ -47,6 +47,16 @@ select (@rownum:=@rownum+1) rownum,a.*
 from sys_user a,
 (select @rownum:=0) b
 ```
+
+- 如果空则取第二个
+
+```sql
+select coalesce(a.name, '无')
+from sys_user a
+
+select nvl(a.name, '无')
+from sys_user a
+```
 - page
 ```sql
 select *
@@ -216,4 +226,29 @@ add col_fav varchar2(30);
 ```sql
 alter table tb_user
 drop column col_fav;
+```
+
+---
+
+## 杂项
+
+- oracle的varchar2类型
+- 具体分为：varchar2(10 byte) 表示使用字节计算长度，表示10字节长度
+- varchar2(10 char) 表示使用字符计算长度，表示10字符长度
+- varchar2(10) 不携带单位，这默认就是byte
+- 所以，在这种情况下，数据库的字符集不同，一个中文占用的字节长度就不同
+- 这就需要注意了
+- 查询数据库字符集
+
+```sql
+SELECT *
+FROM v$nls_parameters
+WHERE PARAMETER = 'NLS_CHARACTERSET';
+```
+
+- 查询一个中文占用多少字节
+
+```sql
+select lengthb('中国')
+from dual;
 ```
