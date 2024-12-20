@@ -268,15 +268,17 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_set_header Origin htpp://$host;
+            proxy_set_header Origin $scheme://$host;
             proxy_redirect off;
             
             # 其他的一些参数
             proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
             proxy_max_temp_file_size 0;
-            proxy_connect_timeout      90;
-            proxy_send_timeout         90;
-            proxy_read_timeout         90;
+			client_max_body_size 300m;
+			proxy_set_header Connection "";
+            proxy_connect_timeout      60s;
+            proxy_send_timeout         300s;
+            proxy_read_timeout         300s;
             proxy_buffer_size          4k;
             proxy_buffers              4 32k;
             proxy_busy_buffers_size    64k;
