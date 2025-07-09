@@ -107,6 +107,18 @@ docker exec -it 容器ID bash
 ```perl
 docker stop 容器ID
 ```
+
+- 启动已经停止的容器start
+
+```shell
+docker start 容器ID/容器名
+```
+
+- 重启容器start
+
+```shell
+docker restart 容器ID/容器名
+```
 - 删除指定的容器rm
     - 在镜像还有使用他的容器时，镜像不允许删除
 ```perl
@@ -132,6 +144,75 @@ docker load -i 加载的镜像文件名称
 ```
 - 同时，你也可以在dockerhub上注册自己的账号，将自己创建的镜像，提交到远程
 - 这里不给出
+
+### 容器的开机自启动
+
+- 配置单个容器
+
+```shell
+docker update --restart=unless-stopped 容器名称
+```
+
+- 举例
+
+```shell
+docker update --restart=unless-stopped jenkins
+```
+
+- 验证配置
+
+```shell
+docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' 容器名称
+```
+
+- 举例
+
+```shell
+docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' jenkins
+```
+
+- 应该输出看到如下的关键字
+
+```shell
+unless-stopped
+```
+
+- 配置所有容器都默认自启动
+- 编辑配置文件
+
+```shell
+vi /etc/docker/daemon.json
+```
+
+- 添加如下配置
+
+```shell
+{
+  "default-restart-policy": "unless-stopped"
+}
+```
+
+- 需要重启docker
+
+```shell
+systemctl restart docker
+```
+
+### 清理docker空间
+
+- 使用命令进行一键清除未使用的镜像，容器，缓存
+
+```shell
+docker system prune
+```
+
+- 会提示是否进行删除
+- 确认删除即可
+- 也可以使用静默删除
+
+```shell
+docker system prune -a
+```
 
 ### Dockerfile 自定义镜像
 - 上面说了，可以使用commit+save+load方式实现自定义镜像
@@ -217,3 +298,533 @@ docker run --rm -p 80:8080 test-jar-img --server.port=8080
 - 部分基础参考在jar8env文件夹下面给出
 - 剩下的就可以自行探索更高级的使用方式
 - 基于docker构建集群，结合k8s做容器编排
+
+## 在maven中使用插件操作docker
+
+- 在maven中使用插件操作docker
+- 能够实现 镜像生成、推送仓库、运行容器
+
+### 配置Docker远程管理
+
+- 镜像生成，推送这些操作都是需要Docker环境的
+- 一般的情况下，我们都是使用自己的电脑开发
+- 然后放到服务器的Docker中运行
+- 也就是说，Docker和开发环境是分开的
+- 这种情况下，就要开启Docker的远程主机
+- 允许远程操作Docker，实现Docker的管理
+- 在此之前，需要对已经安装的docker进行一些配置
+- 这样，就可以在没有docker的机器上，使用已经安装了docker的远程机器完成以上的操作
+- 修改docker服务配置，开通TCP端口监听
+- 编辑服务文件
+
+```shell
+vi /usr/lib/systemd/system/docker.service
+```
+
+- 修改如下行
+- 在 [Service] 节点下面
+- 总体内容差不多就是这样，各个版本之间略有差异
+
+```shell
+ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+```
+
+- 某些版本则是这样的
+
+```shell
+ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock
+```
+
+- 将这行添加参数
+
+```shell
+-H tcp://0.0.0.0:2375
+```
+
+- 最终效果
+
+```shell
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2375 --containerd=/run/containerd/containerd.sock
+```
+
+- 重新加载配置并重启
+
+```shell
+systemctl daemon-reload
+systemctl restart docker
+```
+
+- 添加仓库镜像配置
+
+```shell
+vi /etc/docker/daemon.json
+```
+
+- 添加国内的镜像仓库
+
+```shell
+{
+  "registry-mirrors": [
+    "https://mirror.aliyuncs.com",
+    "https://mirror.baidubce.com",
+    "https://mirror.baidubce.com",
+    "https://docker.m.daocloud.io",
+    "https://hub-mirror.c.163.com",
+    "https://2a6bf1988cb6428c877f723ec7530dbc.mirror.swr.myhuaweicloud.com",
+    "https://your_preferred_mirror",
+    "https://dockerhub.icu",
+    "https://docker.registry.cyou",
+    "https://docker-cf.registry.cyou",
+    "https://dockercf.jsdelivr.fyi",
+    "https://docker.jsdelivr.fyi",
+    "https://dockertest.jsdelivr.fyi",
+    "https://dockerproxy.com",
+    "https://docker.m.daocloud.io",
+    "https://docker.nju.edu.cn",
+    "https://docker.mirrors.sjtug.sjtu.edu.cn",
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://mirror.iscas.ac.cn",
+    "https://docker.rainbond.cc"
+  ]
+}
+```
+
+### 配置maven插件
+
+- 详细配置
+  - Java 端： ./maven/java
+  - Npm 端： ./maven/npm
+- 如果没有私服可以用，可以选择使用官方的 DockerHub
+- 也可以选择使用Docker启动一个自己的私服，用于进行功能验证
+- 详情请查看【安装docker镜像私服】章节
+- 添加插件到 pom.xml 中
+- 添加如下属性
+
+```shell
+<properties>
+    <spring.env>dev</spring.env>
+
+    <docker.remote.host>192.168.x.x:2375</docker.remote.host>
+    <docker.registry.host>192.168.x.x:5000</docker.registry.host>
+    <docker.registry.username></docker.registry.username>
+    <docker.run.port>8080:8080</docker.run.port>
+  </properties>
+```
+
+- 在 project/build/plugins 节点下
+
+```xml
+
+<plugin>
+  <groupId>io.fabric8</groupId>
+  <artifactId>docker-maven-plugin</artifactId>
+  <version>0.46.0</version>
+  <configuration>
+    <!-- Docker 远程管理地址 -->
+    <dockerHost>http://${docker.remote.host}</dockerHost>
+    <!-- Docker 推送镜像仓库地址 -->
+    <pushRegistry>http://${docker.registry.host}</pushRegistry>
+    <!-- 大部分情况下，镜像仓库都是需要认证的，但是如果是自己的私服，可能不需要认证信息 -->
+    <authConfig>
+      <push>
+        <username>${docker.registry.username}</username>
+        <password>${docker.registry.password}</password>
+      </push>
+    </authConfig>
+    <!-- 允许配置多个镜像 -->
+    <images>
+      <image>
+        <!--
+        由于推送到私有镜像仓库，镜像名需要添加仓库地址
+        还有一些支持多租户的镜像仓库，格式可能是：主机:端口/租户名/镜像名:版本
+         -->
+        <name>${docker.registry.host}${docker.registry.username}/${pom.artifactId}:${pom.version}</name>
+        <!--定义镜像构建行为-->
+        <build>
+          <!-- 
+          我们的Dockerfile的文件，这样可以更加精细化的定制镜像的构建过程
+           这里就放在和pom.xml同级的位置
+           默认情况下，Dockerfile所在的目录就是工作目录contextDir，所以可以不用配置contextDir
+           因此，可以使用Dockerfile所在目录下的文件（以及子目录下的）
+           当然，可以把Dockerfile所在与工作目录分开
+           实际上，下面这个配置就是默认配置
+           你也可以根据实际需要，分别更改这两个值，使得各自在不同的路径
+           -->
+          <contextDir>${pom.basedir}</contextDir>
+          <dockerFile>${pom.basedir}/Dockerfile</dockerFile>
+          <!--定义维护者 -->
+          <maintainer>test</maintainer>
+          <!-- 
+          配置是否启用配置参数过滤
+          如果值为false，则不替换maven参数
+          如果为@等单个字符，就进行替换形如 @xxx.xxx@ 这样被@包裹的maven属性变量
+          默认值是 ${*} , 也就是替换 ${xxx.xxx} 这样的占位符的maven属性变量
+          这些属性变量适用于resources资源文件
+          也就是说，对application.yml这些是生效的
+          同时，也对Dockerfile生效
+          -->
+          <filter>@</filter>
+          <!--
+          默认情况下，插件会将contextDir下面的所有文件都复制到docker的运行上下文中
+          这个过程实际上会复制这些文件，打包为一个tar包，将这个tar包通过网络传输给 dockerHost
+          所以，对于一般的项目来说，除非使用源码构建docker镜像，负责一般都是直接使用生成的jar包等编译产物构建镜像
+          在这种前提下，把src等源码文件传输过去，就显得没那么必要了
+          因此，可以使用这里的assemblies配置哪些文件需要添加到contextDir
+          注意，这个配置是追加配置，在默认行为的基础上，添加这里配置的文件
+          所以，到目前为止，src等源码还是会被传输的
+          还需要再contextDir添加 .maven-dockerexclude 文件，排除所有文件
+          这样，默认情况下所有文件都被排除，只有在这里配置的文件才被添加到传输列表
+          -->
+          <assemblies>
+            <assembly>
+              <!-- 将这些文件直接放到contextDir的根目录下 -->
+              <name>/</name>
+              <inline>
+                <fileSets>
+                  <!-- 只包含打包生成的jar/war/tar包等产物 -->
+                  <fileSet>
+                    <directory>${project.build.directory}</directory>
+                    <outputDirectory>target</outputDirectory>
+                    <filtered>false</filtered>
+                    <includes>
+                      <include>*.jar</include>
+                      <include>*.tar</include>
+                      <include>*.war</include>
+                      <include>*.tar.gz</include>
+                      <include>*.tgz</include>
+                      <include>*.zip</include>
+                    </includes>
+                  </fileSet>
+                  <!-- 
+                  只包含resources下面的配置文件，打包的时候可能需要，
+                  并且这类文件不会太大，传输也没事，不用那么严格的控制
+                   -->
+                  <fileSet>
+                    <directory>${project.basedir}/src/main/resources</directory>
+                    <outputDirectory>resources</outputDirectory>
+                  </fileSet>
+                </fileSets>
+              </inline>
+            </assembly>
+          </assemblies>
+        </build>
+        <!--定义容器启动行为-->
+        <run>
+          <!--设置容器名，可采用通配符-->
+          <containerNamePattern>${project.artifactId}</containerNamePattern>
+          <!--设置端口映射-->
+          <ports>
+            <port>8080:8080</port>
+          </ports>
+          <!--设置容器间连接-->
+          <links>
+            <link>mysql:db</link>
+          </links>
+          <!--设置容器和宿主机目录挂载-->
+          <volumes>
+            <bind>
+              <volume>/etc/localtime:/etc/localtime</volume>
+              <volume>/mydata/app/${project.artifactId}/logs:/var/logs</volume>
+            </bind>
+          </volumes>
+        </run>
+      </image>
+    </images>
+  </configuration>
+  <executions>
+    <!--如果想在项目打包时构建镜像添加，如果不想要和maven的声明周期挂钩，就不需要这个配置 -->
+    <execution>
+      <id>build-image</id>
+      <!--
+      在maven的标准生命周期的package阶段，触发执行本插件的build和push两个执行目标goals
+      因此，在打包的时候就会触发构建镜像，推送到镜像仓库
+      -->
+      <phase>package</phase>
+      <goals>
+        <goal>build</goal>
+        <goal>push</goal>
+      </goals>
+    </execution>
+  </executions>
+
+</plugin>
+```
+
+- 下面，我们来添加Dockerfile
+
+```shell
+vi Dockerfile
+```
+
+- 内容如下
+
+```shell
+FROM openjdk:8-jre-slim
+ENV JAR_NAME="app.jar"
+
+ENV SERVER_PORT=8080
+
+# 前面说了，配置了过滤的情况下，可以使用maven变量进行替换，这里就是典型案例
+ENV SPRING_ENV=@spring.env@
+
+ADD target/$JAR_NAME /
+
+WORKDIR /
+
+EXPOSE $SERVER_PORT
+
+ENTRYPOINT ["sh","-c","java -jar  -Dserver.port=$SERVER_PORT -Dspring.profiles.active=$SPRING_ENV $JAR_NAME"]
+```
+
+- 简单说一下逻辑
+- 使用 jdk8 的基础镜像
+- 设置环境变量 JAR_NAME 为固定的名称
+- 将 target/$JAR_NAME.jar 添加到根目录下
+- 设置工作路径为根目录
+- 暴露外部端口
+- 启动运行JAR包
+
+- 这样，就可以进行打包了
+
+```shell
+mvn clean package
+```
+
+- 这样，就完成了以下的步骤
+
+```shell
+mvn clean
+mvn package
+mvn docker:build
+mvn docker:push
+```
+
+- 因为，配置了和maven的package极端挂钩，执行build,push两个阶段
+- 所以，你也可以单独执行镜像构建与推送
+
+```shell
+mvn docker:build
+mvn docker:push
+```
+
+- 如果在没有挂钩的情况下
+- 下面的命令也是等效的
+
+```shell
+mvn clean package docker:build docker:push
+```
+
+## 安装docker镜像私服
+
+- 安装私服，需要更改docker的配置指向私服
+- 然后需要重启docker，为了避免多次重启docker
+- 我们先配置好docker，再安装私服
+
+### 配置docker指向私服
+
+- 下面使用后registry2进行演示
+- 编辑docker配置，添加私有仓库
+- 这是因为docker默认需要访问的是https的仓库
+- 但是，我们这里的私有仓库是http的，也就是insecure不安全的
+- 所以，需要单独配置这种不安全的仓库到docker配置中
+- 编辑配置文件
+
+```shell
+vi /etc/docker/daemon.json
+```
+
+- 添加如下配置
+- 下面的 192.168.x.x:5000 就是我们即将安装的 registry2 仓库的访问地址
+- 这里，记住端口 5000 即可
+
+```shell
+"insecure-registries": ["192.168.50.132:5000"]
+```
+
+- 完整配置如下
+
+```shell
+{
+  "insecure-registries": ["192.168.50.132:5000"],
+  "registry-mirrors": [
+    "https://mirror.aliyuncs.com",
+    "https://mirror.baidubce.com",
+    "https://mirror.baidubce.com",
+    "https://docker.m.daocloud.io",
+    "https://hub-mirror.c.163.com",
+    "https://2a6bf1988cb6428c877f723ec7530dbc.mirror.swr.myhuaweicloud.com",
+    "https://your_preferred_mirror",
+    "https://dockerhub.icu",
+    "https://docker.registry.cyou",
+    "https://docker-cf.registry.cyou",
+    "https://dockercf.jsdelivr.fyi",
+    "https://docker.jsdelivr.fyi",
+    "https://dockertest.jsdelivr.fyi",
+    "https://dockerproxy.com",
+    "https://docker.m.daocloud.io",
+    "https://docker.nju.edu.cn",
+    "https://docker.mirrors.sjtug.sjtu.edu.cn",
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://mirror.iscas.ac.cn",
+    "https://docker.rainbond.cc"
+  ]
+}
+```
+
+- 重启docker以应用配置
+
+```shell
+systemctl daemon-reload
+systemctl restart docker
+```
+
+### 安装registry2私服
+
+- 拉取镜像
+
+```shell
+docker pull registry:2
+```
+
+- 运行registry2仓库
+- 这里将容器的5000端口映射到主机的5000端口上，和上面的配置是对应的
+- 需要注意
+
+```shell
+docker run -p 5000:5000 --name registry2
+	--restart=always \
+	-e REGISTRY_STORAGE_DELETE_ENABLED="true" \
+	-d registry:2
+```
+
+### 安装registry-ui私服的UI界面
+
+- 现在只有一个仓库的服务，没有UI界面，比较不方便
+- 下面开始安装UI界面
+- 拉取镜像
+
+```shell
+docker pull joxit/docker-registry-ui
+```
+
+- 启动容器
+- 这里，将容器的80端口映射到主机的8280端口
+- 并且启动了网络连接 --link 将registry2 固定到 registry2 容器
+- 这样，即使registry2 容器重新启动了，IP即使发生了变化，也能够获取到正确的IP地址
+- 换句话说，也就是将 registry2 固定作为 registry2 容器的固定IP名，类似DNS的作用
+- 后面的 5000 端口，就是我们的私有仓库的端口，对应上就行
+
+```shell
+docker run -p 8280:80 --name registry-ui 
+	--link registry2:registry2 \
+	-e NGINX_PROXY_PASS_URL="http://registry2:5000" \
+	-e DELETE_IMAGES="true" \
+	-e REGISTRY_TITLE="Registry2" \
+	-d joxit/docker-registry-ui
+```
+
+- 现在，通过浏览器访问，就能够看到仓库的信息了
+
+```shell
+http://192.168.x.x:8280/
+```
+
+### 验证私服
+
+- 现在，你看到的页面里面应该是没有任何的镜像的
+- 现在，我们尝试推送一个测试镜像到私有仓库中
+- 以验证功能
+- 这里以busybox为例
+- 先拉取一个公共镜像
+
+```shell
+docker pull busybox
+```
+
+- 给公共镜像，重新打上标签
+- 主要是添加私服的主机路径
+- 按照规范格式来就行
+  - 私服主机：私服端口/镜像名称:镜像版本
+- 我们默认拉取镜像的时候，没有指定私服主机和端口
+- 实际上是内部自动添加了官方镜像的前缀
+- 这里的 5000 端口，对应上就行
+
+```shell
+docker tag busybox 192.168.x.x:5000/busybox:v1.0
+```
+
+- 将这个镜像推送到私服
+- 因为重新打的标签，包含了私服的主机信息
+- 因此直接推送，docker就知道往哪台主机推送了
+
+```shell
+docker push 192.168.x.x:5000/busybox:v1.0
+```
+
+### 打包自己的镜像并推送
+
+- 下面，我们进行一个简单的案例
+- 来说明，手动打包并推送到私服的流程
+- 下面，请先准备一个jar程序包
+- 这里以 app.jar 为例讲解
+- 这个jar包实际上是一个springboot的web程序
+- 可以自行建立一个就行
+- 还有，准备一个Dockerfile文件
+
+```shell
+vi Dockerfile
+```
+
+- 内容如下
+
+```shell
+FROM openjdk:8-jre-slim
+ENV JAR_NAME="app.jar"
+
+ENV SERVER_PORT=8080
+
+ADD $JAR_NAME /
+
+WORKDIR /
+
+EXPOSE $SERVER_PORT
+
+ENTRYPOINT ["sh","-c","java -jar  -Dserver.port=$SERVER_PORT $JAR_NAME"]
+```
+
+- 内容很简单
+- 基础镜像为：openjdk:8-jre-slim
+- 也就是使用jdk8作为基础运行环境
+- 然后设置了启动的jar包名称 JAR_NAME="app.jar"
+- 设置了启动的服务的web端口 SERVER_PORT=8080
+- 然后，将当前目录下的 $JAR_NAME 添加到了容器的 / 根目录下 ADD $JAR_NAME /
+- 然后，设置了容器的工作路径为根目录 WORKDIR /
+- 接着，将容器的WEB端口给暴露了出来，允许外部访问 EXPOSE $SERVER_PORT
+- 最后，定义了启动命令，用于启动这个jar的WEB程序 java -jar -Dserver.port=$SERVER_PORT $JAR_NAME
+- 现在你的文件结构应该是这样的
+
+```shell
+test
+	Dockerfile
+	app.jar
+```
+
+- 也就是保证这两个文件在同一个目录下即可
+- 现在，来打包生成镜像
+- 需要先cd到有DOckerfile的路径下执行
+- 下面，我们直接一步到位，直接打包带有私服主机信息的镜像
+- 镜像就叫做 web-app ， 版本定位 v1.0
+
+```shell
+docker build -t 192.168.x.x:5000/web-app:v1.0 .
+```
+
+- 现在直接推送到私服
+
+```shell
+docker push 192.168.x.x:5000/web-app:v1.0
+```
+
+- 在浏览器中，刷新私服的UI
+- 就能够看到镜像了
+
