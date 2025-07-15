@@ -180,3 +180,13 @@ mvn deploy:deploy-file -DgroupId=${groupId}  -DartifactId=${artifactId}  -Dversi
 ```shell
 mvn deploy:deploy-file -DgroupId=com.antherd  -DartifactId=sm-crypto  -Dversion=0.3.2  -Dpackaging=jar  -Dfile=.\sm-crypto-0.3.2.jar -Durl=http://10.1.4.161:8085/repository/dep_release/  -DrepositoryId=dep_release
 ```
+
+## maven项目中 pom.xml 的编写
+
+- 详情查看
+
+```shell
+./app-pom
+```
+
+- 这个项目的项目结构和注释
