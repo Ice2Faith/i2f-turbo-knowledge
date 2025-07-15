@@ -321,6 +321,12 @@ docker run --rm -p 80:8080 test-jar-img --server.port=8080
 vi /usr/lib/systemd/system/docker.service
 ```
 
+- 某些低版本则是这个文件
+
+```shell
+vi /etc/systemd/system/docker.service
+```
+
 - 修改如下行
 - 在 [Service] 节点下面
 - 总体内容差不多就是这样，各个版本之间略有差异
@@ -329,7 +335,7 @@ vi /usr/lib/systemd/system/docker.service
 ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
 ```
 
-- 某些版本则是这样的
+- 某些低版本则是这样的
 
 ```shell
 ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock
@@ -406,7 +412,7 @@ vi /etc/docker/daemon.json
 
     <docker.remote.host>192.168.x.x:2375</docker.remote.host>
     <docker.registry.host>192.168.x.x:5000</docker.registry.host>
-    <docker.registry.username></docker.registry.username>
+    <docker.registry.prefix></docker.registry.username>
     <docker.run.port>8080:8080</docker.run.port>
   </properties>
 ```
@@ -438,7 +444,7 @@ vi /etc/docker/daemon.json
         由于推送到私有镜像仓库，镜像名需要添加仓库地址
         还有一些支持多租户的镜像仓库，格式可能是：主机:端口/租户名/镜像名:版本
          -->
-        <name>${docker.registry.host}${docker.registry.username}/${pom.artifactId}:${pom.version}</name>
+        <name>${docker.registry.host}${docker.registry.prefix}/${pom.artifactId}:${pom.version}</name>
         <!--定义镜像构建行为-->
         <build>
           <!-- 
