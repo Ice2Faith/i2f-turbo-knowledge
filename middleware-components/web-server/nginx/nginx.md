@@ -19,7 +19,7 @@ tar -zxvf nginx-1.22.1.tar.gz
     - 没有ERROR则可以进行下一步
 ```shell script
 cd nginx-1.22.1
-./configure --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_ssl_module
+./configure --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_sub_module --with-http_ssl_module
 ```
 - 编译并安装
 ```shell script
@@ -483,6 +483,21 @@ location /dispatcher {
    # 根据变量动态的进行proxy_pass
    proxy_pass http://localhost:8080/api;
 }
+```
+
+- 替换响应体的字符串
+- 例如在进行代理转发的时候，可能有的URL地址是固定写死的原本主机的IP地址
+- 代理转发之后，这个URL就是不可用的
+- 这种情况下，就可以考虑将URL地址替换为代理后的地址
+- 这样就可以实现URL地址的转换了
+
+```shell
+sub_filter_once off;  # optional, only replace once, default is off
+sub_filter_types *; # replace mime-types, * means all
+sub_filter '192.168.x.101:80' '192.168.x.102:9018'; # some replace strings
+sub_filter '192.168.x.101:80/' '192.168.x.102:9018/';
+sub_filter '192.168.x.101/' '192.168.x.102/';
+sub_filter '192.168.x.101' '192.168.x.102';
 ```
 
 ## 漏洞解析

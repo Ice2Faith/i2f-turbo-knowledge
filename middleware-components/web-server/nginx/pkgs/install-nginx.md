@@ -93,6 +93,7 @@ cd nginx-1.22.1
 ```shell script
 ./configure --prefix=/usr/local/nginx\
  --with-http_stub_status_module\
+ --with-http_sub_module\
  --with-http_ssl_module\
  --add-module=../ngx_devel_kit-0.3.3\
  --add-module=../set-misc-nginx-module-0.32

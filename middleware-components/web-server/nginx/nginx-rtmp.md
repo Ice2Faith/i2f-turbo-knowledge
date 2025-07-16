@@ -53,7 +53,7 @@ cd nginx-1.22.1
 ```
 - 配置nginx,带上rtmp模块
 ```shell script
-./configure --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_ssl_module --add-module=../nginx-rtmp-module-1.2.2
+./configure --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_sub_module --with-http_ssl_module --add-module=../nginx-rtmp-module-1.2.2
 ```
 - 编译nginx
 - 注意，因为nginx已经编译安装过了
