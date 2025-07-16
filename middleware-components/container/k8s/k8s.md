@@ -5,7 +5,7 @@
 
 ## 基础概念
 
-## 宿主机
+### 宿主机
 
 - 宿主机的概念，这是相对的
 - 简单说就是，如果一个系统A运行在另一个系统B内部，依赖于另一个系统B的运行才能运行
@@ -110,7 +110,7 @@
 - k8s 在前面的【容器化】概念中也说明了一些基础的概念
 - 简单说，k8s 就是统一了多容器跨节点编排的具有微服务基础设施支撑的平台
 
-## k8s 具有哪些能力
+### k8s 具有哪些能力
 
 - 多租户/命名空间隔离：可以实现多个命名空间的隔离，比如：开发环境，测试环境，或者按照项目划分的命名空间
 - 多容器管理：提供了对多个容器的统一管理能力
@@ -121,7 +121,7 @@
 - 服务注册/发现：自动管理整个集群的服务，基于DNS进行服务的注册和发现
 - 负载均衡/流量熔断：自动将流量负载到具体的服务实例上，异常的服务实例自动排除
 
-## k8s 基础概念
+### k8s 基础概念
 
 - 在k8s中，认为一切皆资源
 - 使用资源类型划分
@@ -183,17 +183,17 @@
     - 所以，如果直接在宿主机上使用服务名访问
     - 是访问不到的，除非进行了一些额外的配置
 
-## 流量路径
+### 流量路径
 
-### 南北流量/纵向流量
+#### 南北流量/纵向流量
 
 - 用户--Ingress网关--Service服务--主机--KubeProxy代理--Pod容器
 
-### 东西流量/横向流量
+#### 东西流量/横向流量
 
 - 微服务A--Service服务B--主机--KubeProxy代理--Pod容器B--微服务B
 
-### 流量IP地址/DNS
+#### 流量IP地址/DNS
 
 - k8s中，因为动态编排的原因
 - IP地址就变得不可靠了
@@ -246,6 +246,232 @@ http://app-gateway:8080
 - 其实是一样的
 - 都不用关系具体的地址，而是直接通过服务名访问即可
 
+## k8s 基础命令
+
+### 常用参数
+
+- 指定命名空间
+
+```shell
+-n 指定命名空间，不指定则为默认的default命名空间
+```
+
+- 例如
+
+```shell
+-n mysql
+```
+
+- 指定容器
+
+```shell
+-c 指定容器
+```
+
+- 例如
+
+```shell
+-c app-gateway
+```
+
+### 查看版本
+
+```shell
+kubectl version
+```
+
+### 查看集群信息
+
+```shell
+kubectl cluster-info
+```
+
+### 查看资源
+
+```shell
+kubectl get 资源类型 -n 命名空间
+```
+
+- 当命名空间为默认的 default 时，可以不带命名空间
+- 资源类型如下
+
+```shell
+nodes 集群主机节点Node
+po 容器Pod
+  别名：pod
+svc 服务实例Service
+  别名：service
+deploy 部署实例Deployment
+  别名：deployment
+rs 副本集ReplicaSet
+  别名：replicaset
+cm 配置ConfigMap
+ 别名：configmap
+secret 编码配置Secret
+```
+
+- 举例
+- 查看mysql命名空间的Pod
+
+```shell
+kubectl get po -n mysql
+```
+
+- 可以带上wide参数，提供更多详细信息输出
+
+```shell
+kubectl get pod -n mysql -o wide
+```
+
+- 查看mysql命名空间的服务Svc
+
+```shell
+kubectl get svc -n mysql
+```
+
+- 查看mysql命名空间的部署实例
+
+```shell
+kubectl get deploy -n mysql
+```
+
+- 更多例子
+
+```shell
+kubectl get rs -n mysql
+kubectl get cm -n mysql
+kubectl get po
+```
+
+### 进入pod容器
+
+- 这个和docker的exec基本是一样的用法
+- 格式
+
+```shell
+kubectl exec -it Pod名称 -n 命名空间 -- 要执行的入口命令
+```
+
+- 举例
+
+```shell
+kubectl exec -it mysql-0 -n mysql -- bash
+kubectl exec -it nacos -- bash
+```
+
+- 一般情况下
+- 是先查询有哪些Pod得到Pod名称的
+- 也就是这样
+
+```shell
+kubectl get po
+kubectl exec -it 得到的名称 --bash
+```
+
+### 查看Pod日志
+
+- 格式
+
+```shell
+kubectl logs Pod名称 -c 容器名称 -n 命名空间
+```
+
+- 常用的其他参数
+
+```shell
+-f 实时跟踪，和tail -f的含义一样
+--tail=N 显示最后的N行，和 tail -n 的含义一样
+```
+
+- 举例
+- 查看Pod的日志，因为一般情况下，一个Pod只运行一个容器
+- 所以，查看Pod日志也就相当于查看容器的日志
+- 所以，-c 指定容器是可选的
+
+```shell
+kubectl logs nacos
+kubectl logs nacos -n nacos-ns
+kubectl logs nacos -c nacos-server -n nacos-ns
+kubectl logs -f --tail=300 nacos 
+```
+
+### 查看Pod描述信息
+
+- 当Pod启动出现异常时，可以查看描述信息
+- 判断是在启动的哪个阶段出现的问题
+- 用以辅助检查容器的启动状态
+
+```shell
+kubectl describe 资源类型 资源名称
+```
+
+- 举例
+
+```shell
+# 显示某个节点的信息
+kubectl describe nodes k8s-node1
+
+# 显示某个POD的信息
+kubectl describe po mysql-0
+
+# 也可以这样写
+kebuctl describe pods/mysql-0
+```
+
+### 创建资源
+
+- 格式
+
+```shell
+kubectl create -f 资源配置文件.yaml
+```
+
+- 举例
+
+```shell
+kubectl create -f app.yaml
+```
+
+### 应用资源/更新资源/创建资源
+
+- 这个和create的区别在于自动创建或者更新
+- 也就是存在则更新
+- 因此也是最常用的一种方式
+- 格式
+
+```shell
+kubectl apply -f 资源配置文件.yaml
+```
+
+- 举例
+
+```shell
+kubectl apply -f app.yaml
+
+# 当前目录下的所有yaml配置文件都进行创建
+# 这种情况下，因为可能存在某些资源的依赖性
+# 一般多执行几次即可
+# 逻辑就是，总会有能启动的一些资源
+# 当再次应用的时候，之前依赖的资源总有一部分能够启动了
+# 多应用几次，就能都全部启动起来了
+kubectl apply -f .
+```
+
+### 删除资源
+
+- 格式
+
+```shell
+kubectl delete 资源类型 资源名称
+```
+
+- 举例
+
+```shell
+kubectl delete po redis
+kubectl delete po redis -n redis-ns
+```
+
 ## k8s 资源管理（应用管理，服务管理，持久卷管理）
 
 - k8s 的资源管理都是通过RESTful风格的HTTP接口进行管理的
@@ -263,3 +489,205 @@ kubectl apply -f app.yaml
 - 实现应用的部署，服务的创建，扩缩容，持久卷的创建等等操作
 - 因为万物皆资源，而 yaml 就是管理资源的配置文件
 - 所以，说运维 yaml 也没太大问题
+
+## k8s 资源配置 Yaml 文件编写
+
+- 配置文件就是一个Yaml格式的文件
+- 所以也就要求满足Yaml语法格式
+- 基础格式
+
+```yaml
+apiVersion: v1 # 使用的API版本，各种资源不太一样
+kind: Service # 资源类型，例如：Service,Deployment,Pod,Ingress,ConfigMap,Secrets等等
+metadata: # 元数据信息，用于描述这个资源的基础属性
+  namespace: app-ns # 所属的命名空间，可以不写，不写就是默认的default命名空间
+  name: app # 资源的名称
+  labels: # 资源有哪些标签，这些标签可以自己随便定义，如果是官方提供的资源，会有一些固定的标签
+    k8s-app: app # 其实就是一些列的键值对，爱怎么写怎么写就行
+    xxx: xxx
+spec: # 资源的定义，描述了这个资源的内部信息，各种资源的都不一样
+  selector: # 资源的选择器，决定了k8s如果选择哪些资源进行关联
+    k8s-app: app # 有的selector有多种方式，有的就是固定的使用label标签，这里的就是固定label标签的形式，根据资源类型有所差异
+  xxx: xxx # 其他的资源描述定义属性
+```
+
+- 但是，也有一定的区别
+- 允许将多个Yaml文件内容放在同一个Yaml中
+- 并且使用三减号分隔
+- 例如
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-svc
+spec:
+  selector:
+    k8s-app: app
+---
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: app-deploy
+spec:
+  selector:
+    k8s-app: app-deploy
+```
+
+- 这样的方式，就方便我们将相关度高的内容
+- 都写到一份Yaml中进行描述
+- 例如，常见的：Service和Deployment一般就放在一起定义
+
+### Ingress 资源（南北流量/纵向流量/外部到内部访问）
+
+- 前面说了，Ingress资源使用于外部用户/系统访问到集群内部资源
+- 提供了南北流量（纵向流量）的控制和转发
+- 因此，如果想要在集群外部访问到集群中的资源服务的时候
+- 就需要通过Ingress入口网关才能够访问
+- 下面给出一个案例，结合注释进行说明
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: env-dev
+  name: ingress-gateway
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress/kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: api.project.io
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: app-gateway
+                port:
+                  number: 8080
+          - path: /web
+            pathType: Prefix
+            backend:
+              service:
+                name: app-web
+                port:
+                  number: 8080
+```
+
+### Service 资源（东西流量/横向流量/内部访问）
+
+- 前面说了，Service资源使用于集群内部服务之间相互访问的
+- 提供了东西流量（横向流量）的控制和转发
+- 因此，如果一个服务A要访问到另一个服务B
+- 那么，服务B就应该要提供自己的ServiceB
+- 在微服务的体系下，一般都是一个Service和一个Deployment对应
+- 下面给出一个案例，结合注释进行说明
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: env-dev
+  name: app-gateway
+  labels:
+    k8s-app: app-gateway
+    component: gateway
+spec:
+  selector:
+    k8s-app: app-gateway
+    component: gateway
+  sessionAffinity: None
+  type: NodePort
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+```
+
+### Deployment 资源（部署管理Pod容器）
+
+- 前面介绍过，Deployment使用于管理Pod容器的
+- 提供了容器的部署，升级等操作
+- 主要就是使用镜像构建容器进行运行
+- 因此，内容也是大体如此的
+- 下面给出一个案例，结合注释进行说明
+
+```yaml
+appVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: env-dev
+  name: app-gateway
+  labels:
+    k8s-app: app-gateway
+    component: gateway
+spec:
+  selector:
+    matchLabels:
+      k8s-app: app-gateway
+      component: gateway
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 100%
+  template:
+    metadata:
+      labels:
+        k8s-app: app-gateway
+        component: gateway
+    spec:
+      imagePullSecrets:
+        - name: harbor-secret
+      containers:
+        - name: app-gateway
+          image: 192.168.1.101:5000/env-dev/app-gateway:v1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 8080
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - name: app-yml
+              mountPath: /app/resources/bootstrap.yml
+              subPath: bootstrap.yml
+          resources:
+            requests:
+              cpu: 300m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1024Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 3
+            periodSeconds: 10
+      volumes:
+        - name: app-yml
+          configMap:
+            name: app-gateway-yml
+            items:
+              - key: bootstrap.yml
+                path: bootstrap.yml
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+```
