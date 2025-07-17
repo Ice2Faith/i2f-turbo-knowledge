@@ -1,5 +1,7 @@
 # docker usage
+
 ---
+
 ## intro
 - docker 依赖于Linux内核，因此要运行docker就必须要有一个Linux内核
 - 什么是Linux内核？和常说的Linux系统什么关系？
@@ -15,6 +17,7 @@
 - 最底层，当然是Linux内核
 - 一般的第二次就是一个Linux发行版
 - 下面依次叠加更高的层
+
 ## docker的分层
 - 首选举个例子来看一下
 - 0.linux内核层（操作系统提供，docker共享内核）
@@ -28,6 +31,7 @@
 - 也就是如此，每一层只需要下载一次
 - 所以，就算docker镜像看起来那么大，但是实际上，重复的层是复用的
 - 实际占用空间并没有那么大
+
 ## 固件层和读写层
 - 上面的例子中，是一个典型的场景，每一层都依赖于上一层的基础运行
 - 其中0-3层可以是一个固定的镜像层，不需要进行改动
@@ -40,7 +44,9 @@
 - 因此，镜像是固定的，而镜像运行生成的容器示例是可变的
 
 ---
+
 ## docker的基本操作
+
 ### 安装docker
 - 这部分比较简单，如果是centos7,提供了一份脚本，在./install/centos7/docker-install.sh
 - 按照脚本执行即可
@@ -48,17 +54,24 @@
 ### docker的运行原理
 - 可以参考git的使用原理
 - 在dockerhub中search需要的镜像
-```perl
+
+```shell
 docker search nginx
 ```
+
 - 将需要的镜像pull到本地
-```perl
+
+```shell
 docker pull nginx
 ```
+
 - 检查本地有哪些镜像images
-```perl
+
+```shell
 docker images
 ```
+
+-
 - 运行一个指定的镜像run生成一个容器container
 - 参数解析
     - -d 指定为后台运行
@@ -70,29 +83,39 @@ docker images
     - /bin/bash 进入容器后运行的命令
 - 因此，这条命令就是运行nginx，并以终端进入，使用的bash终端
 - 同时，需要注意的是，容器内必须有一个前台进程在运行，否则容器会自动关闭
-```perl
+
+```shell
 docker run -d --rm -it -p 8080:80 -v /data/nginx:/data nginx /bin/bash
 ```
+
 - 最简单的后台运行方式
-```perl
+
+```shell
 docker run -d nginx
 ```
+
 - 最简单的方式
-```perl
+
+```shell
 docker run nginx
 ```
+
 - 其他的启动参数
     - --name 指定容器名称，在ps中更好看
     - -P 大P表示随机端口映射
     - -p :80 将容器中的80端口随机映射到主机端口
 - 查看正在运行的容器ps
-```perl
+
+```shell
 docker ps
 ```
+
 - 对于已经关闭的容器，查看需要带上-a参数
-```perl
+
+```shell
 docker ps -a
 ```
+
 - 进入一个正在运行的容器exec
     - 使用docker ps之后，会方辉container id容器ID
     - 在后续对容器进行操作都是基于这个容器ID的
@@ -100,11 +123,14 @@ docker ps -a
     - 但是基于操作上来说，一般使用容器ID的前3位即可
     - 其他的参数，和run基本一致
     - 一般来说，进入容器是想要进行操作的，因此指定-it和指定一个终端bash/sh是必要的
-```perl
+
+```shell
 docker exec -it 容器ID bash
 ```
+
 - 停止指定的容器stop
-```perl
+
+```shell
 docker stop 容器ID
 ```
 
@@ -119,29 +145,40 @@ docker start 容器ID/容器名
 ```shell
 docker restart 容器ID/容器名
 ```
+
 - 删除指定的容器rm
     - 在镜像还有使用他的容器时，镜像不允许删除
-```perl
+
+```shell
 docker rm 容器ID
 ```
+
 - 删除指定的镜像rmi
-```perl
+
+```shell
 docker rmi 镜像名称
 ```
+
 - 提交自己对镜像的修改commit
     - 将容器中的修改提交成为一个镜像
     - 通过-t指定镜像名称，否则默认只有容器ID，在docker images中
-```perl
+
+```shell
 docker commit 容器ID -t 镜像名称
 ```
+
 - 保存自己的镜像save
-```perl
+
+```shell
 docker save 镜像名称 -o 保存的镜像文件名
 ```
+
 - 载入别人分享的镜像load
-```perl
+
+```shell
 docker load -i 加载的镜像文件名称
 ```
+
 - 同时，你也可以在dockerhub上注册自己的账号，将自己创建的镜像，提交到远程
 - 这里不给出
 
@@ -186,7 +223,7 @@ vi /etc/docker/daemon.json
 
 - 添加如下配置
 
-```shell
+```json
 {
   "default-restart-policy": "unless-stopped"
 }
@@ -232,7 +269,8 @@ docker system prune -a
         - 同时CMD能够在容器运行时，被运行参数覆盖，因此可以作为默认参数使用
     - ENTRYPOINT 指定容器的入口点，也就是要运行的程序或命令
 - 下面给出一个，运行指定jar包的Dockerfile的编写内容
-```perl
+
+```shell
 # 指定父层，为一个具有openjdk8的基础层，因此，这一步就已经具有java8的环境了
 FROM openjdk:8-jdk-alpine
 
@@ -247,21 +285,27 @@ CMD ["--boot.env=docker"]
 
 # 容器的入口点，因此在容器启动时，就运行了这条命令
 ENTRYPOINT ["java","-jar","/apps/app.jar"]
-
 ```
+
 - 因此这个容器默认启动运行的命令为：
-```perl
+
+```shell
 java -jar /apps/app.jar --boot.ent=docker
 ```
+
 - 又因为，CMD能够被启动参数覆盖
 - 假定启动命令为
-```perl
+
+```shell
 docker run -d --rm test-jar-img --server.port=8080
 ```
+
 - 则实际执行的命令是
-```perl
+
+```shell
 java -jar /apps/app.jar --server.port=8080
 ```
+
 - 现在Dockerfile文件编写好了
 - 主要注意的是，Dockerfile的这个文件名，必须是这个，大小写也要一致
 - 除非某些Linux对于文件大小写文件名不敏感，则大小写可以不一致
@@ -269,27 +313,34 @@ java -jar /apps/app.jar --server.port=8080
 - 另外，Dockerfile中，指定了，需要一个app.jar
 - 这里随便准备一个springboot的jar
 - 一并放进去
-```perl
+
+```shell
 /jar8env
     Dockerfile
     app.jar
 ```
+
 - 进入此路径并构建得到镜像
-```perl
+
+```shell
 cd jar8env
 docker build . -t test-jar-img
 ```
+
 - 这样，就得到了一个叫做test-jar-img的镜像
 - 可以在镜像中看到
-```perl
+
+```shell
 docker images
 ```
+
 - 现在就可以运行这个镜像了
 - 指定CMD镜像覆盖，从而指定了端口，同时将主机的80端口，映射为容器的8080端口
 - 为了方便查看，并未指定-d后台运行，因此，这里就直接可以看到springboot的启动日志了，并且也在8080端口启动了
 - 由于指定了--rm,因此在终止运行之后，容器也随之删除
 - 如果想要验证端口映射，则加上-d后台运行，然后通过docker ps 查看端口映射信息
-```perl
+
+```shell
 docker run --rm -p 80:8080 test-jar-img --server.port=8080
 ```
 
@@ -399,7 +450,9 @@ vi /etc/docker/daemon.json
 
 - 详细配置
   - Java 端： ./maven/java
+    - [pom.xml](maven%2Fjava%2Fpom.xml)
   - Npm 端： ./maven/npm
+    - [pom.xml](maven%2Fnpm%2Fpom.xml)
 - 如果没有私服可以用，可以选择使用官方的 DockerHub
 - 也可以选择使用Docker启动一个自己的私服，用于进行功能验证
 - 详情请查看【安装docker镜像私服】章节
@@ -649,7 +702,7 @@ vi /etc/docker/daemon.json
 
 - 完整配置如下
 
-```shell
+```json
 {
   "insecure-registries": ["192.168.50.132:5000"],
   "registry-mirrors": [

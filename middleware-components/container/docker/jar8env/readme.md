@@ -4,22 +4,26 @@
 - 对给定的jar文件构建一个基于openjdk8的docker镜像
 ## 使用方式
 - 将jar文件存放到这两个文件所在路径，例如test.jar
-```perl
+
+```shell
 build.sh
 Dockerfile
 test.jar
 ```
 - 执行创建脚本
-```perl
+
+```shell
 ./build.sh test.jar
 ```
 - 同时，如果脚本所在目录只有一个jar时，可以简化
-```perl
+
+```shell
 ./build.sh
 ```
 - 构建完毕之后，镜像就创建好了
 - 镜像名称为jar名称+.dimg
-```perl
+
+```shell
 test.jar.dimg
 ```
 - 同时会生成三个辅助脚本
