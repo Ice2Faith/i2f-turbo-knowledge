@@ -70,7 +70,7 @@
 
                 <docker.remote.host>192.168.x.x:2375</docker.remote.host>
                 <docker.registry.host>192.168.x.x:5000</docker.registry.host>
-                <docker.registry.username>/rwd</docker.registry.username>
+                <docker.registry.username>/i2f</docker.registry.username>
                 <docker.run.port>8080:8080</docker.run.port>
             </properties>
             <build>
@@ -95,7 +95,7 @@
                                         <build>
                                             <dockerFile>${pom.basedir}/Dockerfile</dockerFile>
                                             <!--定义维护者-->
-                                            <maintainer>rwd</maintainer>
+                                            <maintainer>i2f</maintainer>
                                             <filter>@</filter>
                                             <assemblies>
                                                 <assembly>

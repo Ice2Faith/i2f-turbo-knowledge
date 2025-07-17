@@ -584,7 +584,7 @@ metadata:
 apiVersion: v1
 kind: Secret # 类型 Secret 加密配置，实际上，默认情况下，只是通过base64编码保存而已
 metadata:
-  namespace: rwd-test-ns # 指定资源归属的命名空间，不指定的话默认就是default
+  namespace: env-dev-ns # 指定资源归属的命名空间，不指定的话默认就是default
   name: harbor-registry-secret # 指定资源名称，记住这个名称，后面在编写Deployment的时候，会在 imagePullSecrets 字段中使用，以完成登录私有镜像仓库，以进行拉取镜像
 type: kubernetes.io/basic-auth # 这里就是固定的，应用在镜像仓库认证信息的这种环境下的时候
 stringData: # 根据type类型的值，这里的写法是多种多样的，在当前这个类型的情况下，就是固定这个格式

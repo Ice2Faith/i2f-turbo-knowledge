@@ -3,9 +3,9 @@ FROM openjdk:8-jre-slim
 ENV TZ=PRC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-MAINTAINER rwd
+MAINTAINER i2f
 
-ENV JAR_NAME="rwd-gateway.jar"
+ENV JAR_NAME="app-gateway.jar"
 ENV SERVER_PORT=8080
 
 ENV SPRING_ENV=@spring.env@
