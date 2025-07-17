@@ -201,11 +201,21 @@
 
 #### 南北流量/纵向流量
 
-- 用户--Ingress网关--Service服务--主机--KubeProxy代理--Pod容器
+- 用户
+- Ingress网关
+- Service服务
+- 主机
+- KubeProxy代理
+- Pod容器
 
 #### 东西流量/横向流量
 
-- 微服务A--Service服务B--主机--KubeProxy代理--Pod容器B--微服务B
+- 微服务A
+- Service服务B
+- 主机
+- KubeProxy代理
+- Pod容器B
+- 微服务B
 
 #### 流量IP地址/DNS
 
@@ -916,7 +926,10 @@ spec:
       
 ## Istio 服务网格（ServiceMesh）承担的角色及作用
 - istio 是一个服务网格的实现
-- 基于 Envoy 代理时间注入 Sidecar 代理服务的进出口流量
+- 基于 Envoy 代理实现注入 Sidecar 代理服务的进出口流量
+- 具体来说，Sidecar 模式下，istio将会自动在每个运行的Pod中注入一个 Envoy 代理
+- 一个Pod里面不是可以包含多个容器吗，Sidecar模式下就是在Pod中添加了一个 Envoy 代理容器
+- 让 Envoy 代理和业务容器一起部署
 - 基于此，提供了对流量的一些列操作和控制
 - 例如：负载均衡，熔断，重试，认证，灰度发布，蓝绿发布等系列的操作
 - 因此，其作用就是一个流量代理分发的角色
@@ -934,6 +947,7 @@ spec:
 - 在k8s中，模式是使用Kube-Proxy完成流量到容器内部的代理的
 - 控制粒度比较粗，支持的协议也有限
 - istio进入之后，Envoy代理就替代了Kube-Proxy的作用
+- 所有的出入口流量都经过Envoy代理，因此Envoy可以对流量进行一系列的操作
 - 能够提供更加细致的流量控制，支持的协议也更加的多
 - 实际上，istio提供了一系列的资源，例如：VirtualService,DestinationRule,Gateway等
 - 用于对原本k8s中的资源进行包装或者代理
