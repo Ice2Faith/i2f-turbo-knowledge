@@ -2,6 +2,20 @@
 
 - k8s 是一个容器编排平台，能够进行在多台linux主机上实现弹性编排部署容器
 - 实现自动扩容、缩容、配置管理、流量网关、负载均衡、熔断、重试、监控等系列操作
+- 请记住一点，k8s主要管理的就容器，因此，很多内容都是为了更好的管理容器
+
+- 中文官方文档
+
+```shell
+https://kubernetes.io/zh-cn/docs/home/
+```
+
+- 本文主要参考教学视频
+
+```shell
+【完整版Kubernetes（K8S）全套入门+微服务实战项目，带你一站式深入掌握K8S核心能力】 
+https://www.bilibili.com/video/BV1MT411x7GH/?p=39&share_source=copy_web&vd_source=d1585431b7321cc3953866535fa8c067
+```
 
 ## 基础概念
 
@@ -177,7 +191,10 @@
 
 ### 容器节点：Pod
 - 是k8s运行的最小单位
-- 也就是一个容器，运行了具体的应用
+- 也就是一组容器，运行了具体的应用
+- 但是通常情况下，一个Pod中值运行一个容器
+- 因为是最小单位，所以k8s主要就是管理这些Pod
+- 所以，大多数的操作都是为了更好的管理和控制这些Pod
 
 ### 配置：ConfigMap/Secret
 - 用户记录一些简单的配置或者配置文件
@@ -514,6 +531,121 @@ kubectl apply -f app.yaml
 - 因为万物皆资源，而 yaml 就是管理资源的配置文件
 - 所以，说运维 yaml 也没太大问题
 
+## k8s 资源管理的解耦核心（label标签与selector选择器）
+- label标签和selector是k8s进行资源关联的核心
+- 是为了解决资源关系复杂性而提出来的一种解耦的思想
+- 通过给资源添加label标签进行属性划分
+- 在通过selector选择器选择一类具备相同label的资源
+- 这样就完成了资源关联性的解决
+- 这个思想在进行资源配置的时候进行了广泛的使用
+- 因此，很有必要了解这个规则
+
+### 引出原因
+- 因为k8s中的资源很多，但是主要的资源是Pod
+- 但是这么多种类的资源，极大可能都和Pod相关
+- 因此，如果每个资源都像数据库一样，使用外键这种方式关联到Pod
+- 那这样的管理成本和复杂度就非常高
+- 甚至于变得难以维护这种关系
+- 举个例子来说
+- Service要记录自身关联了哪些Pod，用于流量的转发
+- Deployment要记录自身管理了哪些Pod，用于版本管理或者更新操作
+- ReplicaSet要记录自己管理了哪些Pod，用于版本管理和更新操作
+- 光是这个例子，就不难看出，这是一个多对多的关系
+- 最终形成一个图，维护和管理这样的一个图关系非常复杂
+- 同时，因为Pod的自恢复，自动扩容等特性
+- Pod是不稳定的，可能随时发生变化
+- 这样的情况下，维护这个关系，就非常复杂
+
+### 解决方案
+- 既然维护这个图关系非常复杂
+- 那就不维护这个关系了
+- 转而为每种资源提供标签属性(label)
+- 这样，各个资源都能有自己的标签划分
+- 那怎么获取某一类资源呢
+- 实际上，只需要根据标签来获取就行，也就是选择
+- 这就是选择器(selector)
+- 拥有某一类标签的资源，就是我要管理的资源
+- 举个例子来说
+- Service是需要知道流量都能够转发到哪些Pod上的
+  - 那只需要有一些Pod具有一些指定的标签label
+  - 比如：Pod具有这样的一个标签：app=app-auth
+  - Service就只需要找到拥有这些指定标签的Pod即可
+  - 比如Service选择器（selector）就只需要找到带有app=app-auth标签的Pod即可
+- 同样，这也适用于Deployment找到管理的Pod
+- ReplicaSet找到管理的Pod
+
+## Pod的探针(Probe) 与 生命周期(Lifecycle)
+- Pod 提供了启动探针(startupProbe)、就绪探针(readinessProbe)、存活探针(livenessProbe)
+- 提供了初始化容器(initContainer)、容器启动钩子(postStart)、容器关闭钩子(preStop)
+- 关于具体的使用，请查看 Deployment/Pod 资源编写章节
+
+### 探针(Probe)
+- 可以通过执行命令或者发送HTTP请求的方式
+- 确认容器运行的状态
+- 启动探针(startupProbe)
+  - 在 kind=Deployment 的 spec.template.spec.containers[i].startupProbe 属性中配置
+  - 或者 kind=Pod 的 spec.containers[i].startupProbe 属性中配置
+  - 用于检测容器是否启动完成
+  - 只在容器启动后执行一个探测周期
+  - 也就是，探测成功或者失败
+  - 探测成功，容器继续运行
+  - 探测失败，销毁容器，重新构建新的Pod进行运行
+- 就绪探针(readinessProbe)
+  - 在 kind=Deployment 的 spec.template.spec.containers[i].readinessProbe 属性中配置
+  - 或者 kind=Pod 的 spec.containers[i].readinessProbe 属性中配置
+  - 用于检测容器是否已经可以向外提供服务
+  - 和启动探针的区别是这样的
+  - 举个例子解释下
+  - 就比如一个java-web程序
+  - 虽然程序已经启动成功了
+  - 但是还不能接受HTTP请求
+  - 这就能体现二者的区别了
+  - 启动探针是用于判断是否启动了
+  - 就绪探针适用于判断是否可以向外提供服务了
+  - 一般情况下，会留一些时间给启动探针检测启动完成
+  - 默认情况下，如果配置了启动探针，在启动探针执行期间，不会运行就绪探针和存活探针
+  - 在判断是否就绪
+  - 同样在启动后执行一个探测周期
+  - 同样，成功继续运行，失败重新启动一个新的Pod运行
+- 存活探针(livenessProbe)
+  - 在 kind=Deployment 的 spec.template.spec.containers[i].livenessProbe 属性中配置
+  - 或者 kind=Pod 的 spec.containers[i].livenessProbe 属性中配置
+  - 用于在整个容器运行期间定时的判断容器是否存活可用
+  - 一般会等待启动探针、就绪探针完毕之后再开始存活探针
+  - 默认情况下，如果配置了启动探针、就绪探针，在启动探针、就绪探针执行期间，不会运行存活探针
+  - 同样，在一个探测周期中
+  - 探测结果，成功继续运行，失败重新启动一个新的Pod运行
+
+### 生命周期(Lifecycle)
+- 初始化容器(initContainer)
+  - 在 kind=Deployment 的 spec.template.spec.initContainers 属性中配置
+  - 或者 kind=Pod 的 spec.initContainers 属性中配置
+  - 在容器运行之前运行，可以限于容器的启动命令执行一些初始化操作
+  - 可以有多个初始化容器
+  - 多个初始化容器时，按照顺序依次执行
+  - 不会并行执行
+
+- 容器启动钩子(postStart)
+  - 在 kind=Deployment 的 spec.template.spec.containers[i].lifeCycle.postStart 属性中配置
+  - 或者 kind=Pod 的 spec.containers[i].lifeCycle.postStart 属性中配置
+  - 在容器启动的同时，异步的并行执行一系列的操作
+  - 因此，执行的操作和容器的启动命令是同时运行的
+  - 并不能保证二者的先后执行顺序
+  - 如果要在启动命令之前执行的话
+  - 应该使用初始化容器，而不是启动钩子
+
+- 容器关闭钩子(preStop)
+  - 在 kind=Deployment 的 spec.template.spec.containers[i].lifeCycle.preStop 属性中配置
+  - 或者 kind=Pod 的 spec.containers[i].lifeCycle.preStop 属性中配置
+  - 在容器停止的时候，先执行一系列的操作在关闭容器
+  - 容器默认会有一个关闭超时窗口期
+  - 允许在这个超时时间内进行一些操作
+  - 如果达到了超时时间，关闭钩子依旧没有执行完毕
+  - 那么也不会等待关闭钩子执行完毕
+  - 这个超时时间由 terminationGracePeriodSeconds 参数决定
+  - 默认是 30s
+  - 实际上也是异步的并行执行这些钩子
+
 ## k8s 资源配置 Yaml 文件编写
 
 - 配置文件就是一个Yaml格式的文件
@@ -521,18 +653,34 @@ kubectl apply -f app.yaml
 - 基础格式
 
 ```yaml
-apiVersion: v1 # 使用的API版本，各种资源不太一样
-kind: Service # 资源类型，例如：Service,Deployment,Pod,Ingress,ConfigMap,Secrets等等
-metadata: # 元数据信息，用于描述这个资源的基础属性
-  namespace: app-ns # 所属的命名空间，可以不写，不写就是默认的default命名空间
-  name: app # 资源的名称
-  labels: # 资源有哪些标签，这些标签可以自己随便定义，如果是官方提供的资源，会有一些固定的标签
-    k8s-app: app # 其实就是一些列的键值对，爱怎么写怎么写就行
+# 使用的API版本，各种资源不太一样
+apiVersion: v1
+# 资源类型，例如：Service,Deployment,Pod,Ingress,ConfigMap,Secrets等等
+kind: Service
+# 元数据信息，用于描述这个资源的基础属性
+metadata:
+  # 所属的命名空间，可以不写，不写就是默认的default命名空间
+  namespace: app-ns
+  # 资源的名称
+  name: app
+  # 资源有哪些标签，这些标签可以自己随便定义，如果是官方提供的资源，会有一些固定的标签
+  labels:
+    # 其实就是一些列的键值对，爱怎么写怎么写就行
+    k8s-app: app 
+    # 可以定义其他的标签，喜欢怎么定义怎么定义
+    # 常见的有：
+    # tier 前后端类型划分: backend,frontend
+    # profile/environment 环境：dev,test,uat,prod
+    # version 版本： v1,v2
     xxx: xxx
-spec: # 资源的定义，描述了这个资源的内部信息，各种资源的都不一样
-  selector: # 资源的选择器，决定了k8s如果选择哪些资源进行关联
-    k8s-app: app # 有的selector有多种方式，有的就是固定的使用label标签，这里的就是固定label标签的形式，根据资源类型有所差异
-  xxx: xxx # 其他的资源描述定义属性
+# 资源的定义，描述了这个资源的内部信息，各种资源的都不一样
+spec:
+  # 资源的选择器，决定了k8s如果选择哪些资源进行关联
+  selector:
+    # 有的selector有多种方式，有的就是固定的使用label标签，这里的就是固定label标签的形式，根据资源类型有所差异
+    k8s-app: app
+  # 其他的资源描述定义属性
+  xxx: xxx 
 ```
 
 - 但是，也有一定的区别
@@ -548,6 +696,7 @@ metadata:
 spec:
   selector:
     k8s-app: app
+# 这里就使用三减号进行分割
 ---
 apiVersion: v1
 kind: Deployment
@@ -569,10 +718,15 @@ spec:
 - 下面给出一个案例，结合注释进行说明
 
 ```yaml
-apiVersion: v1 # 使用的API版本，当前都是固定v1
-kind: Namespace # 类型，命名空间
+# 使用的API版本，当前都是固定v1
+apiVersion: v1
+# 类型，命名空间
+kind: Namespace 
 metadata:
-  name: env-dev-ns # 给定一个命名空间名称就行
+  # 给定一个命名空间名称就行
+  # 可以考虑以 -ns 结尾，或者以 ns- 开头
+  # 用以从名称看出资源类型
+  name: env-dev-ns 
 ```
 
 ### Secret 资源（配置私有镜像仓库登录信息）
@@ -580,15 +734,33 @@ metadata:
 - 主要用于配置私有镜像仓库的登录信息
 - 用于能够从私有仓库拉取镜像
 
+- 官网文档
+
+```shell
+https://kubernetes.io/zh-cn/docs/concepts/configuration/secret/
+```
+
+- 实例配置仓库认证信息
+
 ```shell
 apiVersion: v1
-kind: Secret # 类型 Secret 加密配置，实际上，默认情况下，只是通过base64编码保存而已
+# 类型 Secret 加密配置，实际上，默认情况下，只是通过base64编码保存而已
+kind: Secret 
 metadata:
-  namespace: env-dev-ns # 指定资源归属的命名空间，不指定的话默认就是default
-  name: harbor-registry-secret # 指定资源名称，记住这个名称，后面在编写Deployment的时候，会在 imagePullSecrets 字段中使用，以完成登录私有镜像仓库，以进行拉取镜像
-type: kubernetes.io/basic-auth # 这里就是固定的，应用在镜像仓库认证信息的这种环境下的时候
-stringData: # 根据type类型的值，这里的写法是多种多样的，在当前这个类型的情况下，就是固定这个格式
-  username: "admin" # 一般镜像仓库会使用harbor仓库，这里就填写harbor仓库的用户名密码就行
+  # 指定资源归属的命名空间，不指定的话默认就是default
+  # 一般情况下，在公司内部使用k8s时，都不会使用default
+  # 一般都是根据项目划分或者根据环境划分命名空间的
+  # 所以，一般建议加上命名空间
+  namespace: env-dev-ns 
+  # 指定资源名称，记住这个名称，后面在编写Deployment的时候，会在 imagePullSecrets 字段中使用，以完成登录私有镜像仓库，以进行拉取镜像
+  # 可以考虑以 -secret 结尾，或者以 secret- 开头
+  name: harbor-registry-secret 
+# 这里就是固定的，应用在镜像仓库认证信息的这种环境下的时候
+type: kubernetes.io/basic-auth 
+# 根据type类型的值，这里的写法是多种多样的，在当前这个类型的情况下，就是固定这个格式
+stringData: 
+  # 一般镜像仓库会使用harbor仓库，这里就填写harbor仓库的用户名密码就行
+  username: "admin" 
   password: "harbor12345"
 ```
 
@@ -598,34 +770,57 @@ stringData: # 根据type类型的值，这里的写法是多种多样的，在�
 - 提供了南北流量（纵向流量）的控制和转发
 - 因此，如果想要在集群外部访问到集群中的资源服务的时候
 - 就需要通过Ingress入口网关才能够访问
+
+- 官网文档
+
+```shell
+https://kubernetes.io/zh-cn/docs/concepts/services-networking/ingress/
+```
+
 - 下面给出一个案例，结合注释进行说明
 
 ```yaml
-apiVersion: networking.k8s.io/v1 # 版本是根据资源类型来的，像这里，Ingress的版本就得这样写
-kind: Ingress # 类型为 Ingress 入口网关
+# 版本是根据资源类型来的，像这里，Ingress的版本就得这样写
+apiVersion: networking.k8s.io/v1
+# 类型为 Ingress 入口网关
+kind: Ingress 
 metadata:
   namespace: env-dev-ns
+  # 可以考虑以 -ingress 结尾，或者以 ingress- 开头
   name: ingress-gateway
   annotations:
-    kubernetes.io/ingress.class: "nginx" # 入口网关可以有多重实现，使用nginx实现就是其中的一种
-    nginx.ingress/kubernetes.io/rewrite-target: / # 这里路由我们根据路径前缀来进行路由划分，但是转发后的路由，我们需要去除掉前缀，就在这里实现路径重写，治理直接设置为/，这样就能够把前缀去掉
+    # 入口网关可以有多重实现，使用nginx实现就是其中的一种
+    kubernetes.io/ingress.class: "nginx"
+    # 这里路由我们根据路径前缀来进行路由划分，但是转发后的路由，我们需要去除掉前缀，就在这里实现路径重写，治理直接设置为/，这样就能够把前缀去掉
+    nginx.ingress/kubernetes.io/rewrite-target: / 
 spec:
   rules:
-    - host: api.project.io # 虚拟主机域名，也可以不写这个HOST，直接些HTTP转发规则
-      http: # 编写HTTP的转发规则
-        paths: # 按照路径进行转发的配置
-          - path: /api # 如果以/api开头的，那就转发到app-gateway服务商的8080端口上
-            pathType: Prefix # 使用前缀模式，还有其他的模式
-            backend: # 指定转发到的端点信息
-              service: # 指定服务
-                name: app-gateway # 指定转到的目标服务名
+      # 虚拟主机域名，也可以不写这个HOST，直接些HTTP转发规则
+    - host: api.project.io
+      # 编写HTTP的转发规则
+      http:
+        # 按照路径进行转发的配置
+        paths:
+            # 如果以/api开头的，那就转发到app-gateway服务商的8080端口上
+          - path: /api
+            # 使用前缀模式，还有其他的模式
+            pathType: Prefix
+            # 指定转发到的端点信息
+            backend:
+              # 指定服务
+              service:
+                # 指定转到的目标服务名，这个就对应 kind=Service 的资源配置的 metadata.name 属性
+                # 其实这也算是一种selector，只不过是专用在这种场景的
+                # 属于按名称选择
+                name: app-gateway-svc 
                 port:
-                  number: 8080 # 指定转到的目标端口
+                  # 指定转到的目标端口
+                  number: 8080 
           - path: /web
             pathType: Prefix
             backend:
               service:
-                name: app-web
+                name: app-web-svc
                 port:
                   number: 8080
 ```
@@ -637,6 +832,13 @@ spec:
 - 因此，如果一个服务A要访问到另一个服务B
 - 那么，服务B就应该要提供自己的ServiceB
 - 在微服务的体系下，一般都是一个Service和一个Deployment对应
+
+- 官网文档
+
+```shell
+https://kubernetes.io/zh-cn/docs/concepts/services-networking/service/
+```
+
 - 下面给出一个案例，结合注释进行说明
 
 ```yaml
@@ -644,21 +846,37 @@ apiVersion: v1
 kind: Service
 metadata:
   namespace: env-dev-ns
-  name: app-gateway
+  # 可以考虑以 -svc 结尾，或者以 svc- 开头
+  name: app-gateway-svc
   labels:
     k8s-app: app-gateway
     component: gateway
 spec:
-  selector: # 指定服务的选择器，也就是这个服务要关联到哪些资源，这里其实选择的就是Deployment中定义的资源
-    k8s-app: app-gateway # 这里就是在其他资源上定义的标签，选择器的模式是and模式，也就是都要满足
+  # 指定服务的选择器，也就是这个服务要关联到哪些资源，这里其实选择的就是Deployment中定义的资源
+  selector:
+    # 这里就是在其他资源上定义的标签，选择器的模式是and模式，也就是都要满足
+    # 这里这种事labelSelector标签选择器
+    # 这里因为是Service，而Service选择时的Pod
+    # 所以，这里选择的就是具有这些标签的Pod
+    # 对应的就是 kind=Pod 的 metadata.labels 标签
+    # 另外，因为一般使用的是Deployment管理Pod
+    # 所有，也就是对应 kind=Deployment 的 spec.template.metadata.labels 标签
+    k8s-app: app-gateway 
     component: gateway
-  sessionAffinity: None # 会话的亲和性，可以用于定义转发的规则，比如实现优先转发到某些特征的Pod节点上
-  type: NodePort # 类型，NodePort 模式会在对应的Node主机上也开放一个端口，这样就能够直接在宿主机上访问到服务，默认是 ClusterIp, 只能在集群内访问到
-  ports: # 转发的端口信息
-    - name: http # 端口名称，这个名称可以再其他地方代替端口
-      protocol: TCP # 协议，默认就是TCP，也支持UDP
-      port: 8080 # 服务的暴露端口，所以，就可以通过（服务名：这个端口）访问
-      targetPort: 8080 # 转发到的Pod的端口
+  # 会话的亲和性，可以用于定义转发的规则，比如实现优先转发到某些特征的Pod节点上
+  sessionAffinity: None
+  # 类型，NodePort 模式会在对应的Node主机上也开放一个端口，这样就能够直接在宿主机上访问到服务，默认是 ClusterIp, 只能在集群内访问到
+  type: NodePort
+  # 转发的端口信息
+  ports:
+      # 端口名称，这个名称可以再其他地方代替端口
+    - name: http
+      # 协议，默认就是TCP，也支持UDP
+      protocol: TCP
+      # 服务的暴露端口，所以，就可以通过（服务名：这个端口）访问
+      port: 8080
+      # 转发到的Pod的端口
+      targetPort: 8080 
 ```
 
 - 使用服务名映射到已有的域名上
@@ -671,10 +889,13 @@ apiVersion: v1
 kind: Service
 metadata:
   namespace: env-dev-ns
-  name: app-database
+  # 可以考虑以 -svc-ext 结尾，或者以 svc-ext- 开头
+  name: app-database-svc-ext
 spec:
-  type: ExternalName # 定义一个类型为外部域名的服务，这种服务映射的就是一个外部的域名主机
-  externalName: my.database.example.com # 外部域名，不能是IP
+  # 定义一个类型为外部域名的服务，这种服务映射的就是一个外部的域名主机
+  type: ExternalName
+  # 外部域名，不能是IP
+  externalName: my.database.example.com 
 ```
 
 - 如果要映射到固定的IP地址
@@ -687,33 +908,45 @@ apiVersion: v1
 kind: Service
 metadata:
   namespace: env-dev-ns
-  name: app-database
+  # 可以考虑以 -svc-headless 结尾，或者以 svc-headless- 开头
+  name: app-database-svc-headless
 spec:
-  clusterIP: None # 定义一个无头服务
+  # 定义一个无头服务
+  clusterIP: None 
   selector:
+    # 这种情况下，选择器选择的目标就是 Endpoint
+    # 对应的就是 kind=EndpointSlice 的 metadata.labels 属性
     k8s-app: app-database
   ports:
     - protocol: TCP
       port: 1521
+      # 这里对应的就是 Endpoint 的连接端口
       targetPort: 1521
 
 ---
 apiVersion: discovery.k8s.io/v1
-kind: EndpointSlice # 定义一个网络端点类型的资源
+# 定义一个网络端点类型的资源
+kind: EndpointSlice 
 metadata:
   namespace: env-dev-ns
+  # 可以考虑以 -es 结尾，或者以 es- 开头
   name: app-database-es
   labels:
     k8s-app: app-database
-addressType: IPv4 # 转发的地址类型为IPV4
-ports: # 定义端点暴露的端口
+# 转发的地址类型为IPV4
+addressType: IPv4
+# 定义端点暴露的端口
+ports: 
   - name: http
     protocol: TCP
     port: 1521
-endpoints: # 端点列表
-  - addresses: # 定义端点的IP列表，也就是说可以有多个，例如集群的情况
+# 端点列表
+endpoints:
+    # 定义端点的IP列表，也就是说可以有多个，例如集群的情况
+  - addresses: 
       - "192.168.1.103"
-    conditions: # 可以编写一些规则来判断端点的可用性
+    # 可以编写一些规则来判断端点的可用性
+    conditions: 
       ready: true
 ```
 
@@ -723,86 +956,280 @@ endpoints: # 端点列表
 - 提供了容器的部署，升级等操作
 - 主要就是使用镜像构建容器进行运行
 - 因此，内容也是大体如此的
+
+- 官网文档
+
+```shell
+https://kubernetes.io/zh-cn/docs/concepts/workloads/controllers/deployment/
+```
+
 - 下面给出一个案例，结合注释进行说明
 
 ```yaml
-appVersion: apps/v1 # Deployment 类型的，默认都是 apps/v1
-kind: Deployment # Deployment 类型的资源
+# Deployment 类型的，默认都是 apps/v1
+appVersion: apps/v1
+# Deployment 类型的资源
+kind: Deployment 
 metadata:
   namespace: env-dev-ns
-  name: app-gateway
+  # 可以考虑以 -deploy 结尾，或者以 deploy- 开头
+  name: app-gateway-deploy
   labels:
     k8s-app: app-gateway
     component: gateway
 spec:
-  selector: # 因为这个是Deployment类型的，内部实际上是需要管理Pod的，因此就需要定义管理哪些Pod，就通过这个选择器来决定
-    matchLabels: # 使用标签进行匹配，这个匹配的其实就是本配置的 spec.template.metadata.labels 的内容
+  # 因为这个是Deployment类型的，内部实际上是需要管理Pod的，因此就需要定义管理哪些Pod，就通过这个选择器来决定
+  # 这里要选择的目标就是一类Pod
+  # 因此这里的selector就是为了选择出Pod的
+  # 在资源定义中，对应 kind=Pod 的 metadata.labels 属性
+  # 因为一般都是使用Deployment管理Pod
+  # 所以，也就是对应 kind=Deployment 的 spec.template.metadata.labels 属性
+  selector:
+    # 使用标签进行匹配，这个匹配的其实就是本配置的 spec.template.metadata.labels 的内容
+    matchLabels: 
       k8s-app: app-gateway
       component: gateway
-  replicas: 3 # 定义副本数
-  strategy: # 定义更新策略
-    type: RollingUpdate # 使用滚动更新，也就是必须保证服务的不间断，实现无感更新
-    rollingUpdate: # 滚动更新的配置
-      maxSurge: 100% # 配置替换了多少个Pod之后认为是可用的
-      maxUnavailable: 100% # 配置任务多少个Pod未启动认为是不可用的
-  template: # 定义创建Pod的模版，也可以认为是创建 ReplicaSet 的模版，这部分就可以对比 docker-compose的配置了
+  # 除了selector之外的其他属性，实际上都可以认为是为了给 ReplicaSet 使用的
+  # 但是因为 ReplicaSet 是为了进行历史版本替换的，所以也就没有表现出来
+  # 所有会有一种 ReplicaSet 与 Deployment 配置重叠的感觉
+  # 定义副本数
+  replicas: 3
+  # 定义更新策略
+  strategy:
+    # 使用滚动更新，也就是必须保证服务的不间断，实现无感更新
+    type: RollingUpdate
+    # 滚动更新的配置
+    rollingUpdate:
+      # 配置替换了多少个Pod之后认为是可用的
+      maxSurge: 100%
+      # 配置任务多少个Pod未启动认为是不可用的
+      maxUnavailable: 100%
+  # 定义创建Pod的模版，也可以认为是创建 ReplicaSet 的模版，这部分就可以对比 docker-compose的配置了
+  # 实际上，这个部分的配置内容，和 kind=Pod 类型的资源定义是一模一样的
+  # 这里相当于内嵌了 Pod 的资源配置
+  template: 
+    # 所以来说，这个部分就是 kind=Pod 资源的配置
     metadata:
       labels:
         k8s-app: app-gateway
         component: gateway
-    spec: # 定义如何产生一个Pod
-      imagePullSecrets: # 指定拉取镜像使用的Secret认证信息
-        - name: harbor-registry-secret # 这个就是前面定义的一个用于保存harbor私服镜像仓库的登录信息
-      containers: # 定义Pod内部的容器，我们说过，一般情况，一个Pod只放一个容器
-        - name: app-gateway # 容器的名称
-          image: 192.168.1.101:5000/env-dev/app-gateway:v1.0 # 镜像名称 
+    # 定义如何产生一个Pod
+    spec:
+      # 初始化容器
+      # 可以不配置
+      initContainers:
+        - name: init-nginx
+          image: nginx
+          imagePullPolicy: IfNotPresent
+          command: ["sh","-c","echo init ..."]
+      # 指定拉取镜像使用的Secret认证信息
+      imagePullSecrets: 
+          # 这个就是前面定义的一个用于保存harbor私服镜像仓库的登录信息
+        - name: harbor-registry-secret
+      # 定义Pod内部的容器，我们说过，一般情况，一个Pod只放一个容器
+      containers:
+          # 容器的名称
+        - name: app-gateway
+          # 镜像名称
+          # 例如这个镜像名称，就表示从 192.168.1.101:5000 主机的仓库
+          # 拉取 env-dev/app-gateway:v1.0  镜像
+          # 其中 env-dev 部分，可能是租户名称，或者项目名称
+          # 每个仓库的概率不太一样，dockerhub就表示注册的用户名
+          # harbor仓库就表示自定义的项目名
+          image: 192.168.1.101:5000/env-dev/app-gateway:v1.0 
           # 镜像的更新策略，是否每次都重新拉取镜像
           # 如果管理上对版本控制相当好，保证每次操作都会产生一个新的镜像版本，那就可以使用默认值 IfNotPresent 如果不存在则拉取
           # 但是如果没有严格的镜像版本控制，建议使用 Always 始终拉取镜像
+          # 可以不配置
           imagePullPolicy: Always
-          ports: # 定义容器暴露的端口
+          # 定义容器暴露的端口
+          # 可以不配置
+          ports: 
             - name: http
               protocol: TCP
-              containerPort: 8080 # 容器暴露的端口
-          terminationMessagePath: /dev/termination-log  # 定义容器运行终止之后保存终止消息的位置
-          terminationMessagePolicy: File # 终止信息的策略类型
-          volumeMounts: # 定义挂载的卷
-            - name: app-yml # 这里实际上是下面定义的卷的名称
-              mountPath: /app/resources/bootstrap.yml # 定义挂载到的容器内的路径，这样整个路径都会被替换，如果之前路径下有文件，会被完全替换，不会说有则覆盖无则保留
-              subPath: bootstrap.yml # 但是，这里要做的就是有则覆盖，无则保留，因此就要配合subPath定义哪些直接替换，导致上面的mountPath也变为一个具体的文件名而不是目录名
-          resources: # 定义资源限制，用于进行自动扩缩容
-            requests: # 建议的初始资源或者一般情况下的资源
-              cpu: 300m # 1000m表示一个CPU核心，300m就表示0.3个核心就够了
-              memory: 512Mi # 默认使用的内存大小，单位就是MB
-            limits: # 定义最大扩容允许使用的资源数量
-              cpu: 1000m # 按照这个配置，也就是说允许再扩容1个Pod，因为内存比默认的大1倍
+              # 容器暴露的端口
+              containerPort: 8080
+          # 定义容器运行终止之后保存终止消息的位置
+          # 可以不配置
+          terminationMessagePath: /dev/termination-log
+          # 终止信息的策略类型
+          # 可以不配置
+          terminationMessagePolicy: File
+          # 定义挂载的卷
+          # 可以不配置
+          volumeMounts:
+              # 这里实际上是下面定义的卷的名称
+            - name: app-yml
+              # 定义挂载到的容器内的路径，这样整个路径都会被替换
+              # 如果之前路径下有文件，会被完全替换，不会说有则覆盖无则保留
+              mountPath: /app/resources/bootstrap.yml
+              # 但是，这里要做的就是有则覆盖，无则保留，因此就要配合subPath定义哪些直接替换
+              # 导致上面的mountPath也变为一个具体的文件名而不是目录名
+              subPath: bootstrap.yml
+          # 定义资源限制，用于进行自动扩缩容
+          # 可以不配置
+          resources:
+            # 建议的初始资源或者一般情况下的资源
+            requests:
+              # 1000m表示一个CPU核心，300m就表示0.3个核心就够了
+              cpu: 300m
+              # 默认使用的内存大小，单位就是MB
+              memory: 512Mi
+            # 定义最大扩容允许使用的资源数量
+            limits:
+              # 按照这个配置，也就是说允许再扩容1个Pod，因为内存比默认的大1倍
+              cpu: 1000m 
               memory: 1024Mi
-          readinessProbe: # 容器就绪探针配置，用于判断容器是否已经启动完毕
-            httpGet: # 通过发起HttpGet请求判断，如果相应的是200-400之间的HTTP状态码，则认为启动完毕
-              path: / # 定义请求的路径和端口
+          # 生命周期钩子
+          # 可以不配置
+          lifeCycle:
+            # 启动钩子
+            postStart:
+              # 这里就简单给一个示例
+              exec:
+                command:
+                  - sh
+                  - "-c"
+                  - "echo start ..."
+            # 停止钩子
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - "-c"
+                  - "echo stop ..."
+          # 容器就绪探针配置，用于判断容器是否已经启动完毕
+          # 可以不配置
+          readinessProbe:
+            # 通过发起HttpGet请求判断，如果相应的是200-400之间的HTTP状态码，则认为启动完毕
+            # 比如，如果是springboot项目，可以集成actuator
+            # 暴露 /heath 就可以达到目的
+            httpGet:
+              # 定义请求的路径和端口
+              path: / 
               port: 8080
-            initialDelaySeconds: 60 # 容器启动后的60秒后开始检查是否就绪
-            timeoutSeconds: 5 # 请求超时时间为5秒
-            failureThreshold: 3 # 最大失败次数为3，也就是说，如果三次都失败了，那么就认为容器启动失败，无法就绪，k8s就会销毁这个Pod，重新创建一个Pod替换
-            periodSeconds: 10 # 间隔时间，也就是从容器启动60秒之后，每隔10秒检查一次容器是否就绪，如果3次失败，则无法就绪，重建Pod，否则任务已经就绪，后续不在进行就绪检查
-          livenessProbe: # 容器的存活探针配置，用于判断容器是否还存活，该探针如果在已经配置就绪探针的情况下，会等待就绪探针完毕之后才进行
+            # 容器启动后的60秒后开始检查是否就绪，如果在配置了启动探针的情况下，这个时间就相当于等待启动探针结束
+            initialDelaySeconds: 60
+            # 请求超时时间为5秒
+            timeoutSeconds: 5
+            # 最大失败次数为3，也就是说，如果三次都失败了，那么就认为容器启动失败，无法就绪，k8s就会销毁这个Pod，重新创建一个Pod替换
+            failureThreshold: 3
+            # 间隔时间，也就是从容器启动60秒之后，每隔10秒检查一次容器是否就绪
+            # 如果3次失败，则无法就绪，重建Pod，否则任务已经就绪，后续不在进行就绪检查
+            periodSeconds: 10 
+          # 容器的存活探针配置，用于判断容器是否还存活，该探针如果在已经配置就绪探针的情况下，会等待就绪探针完毕之后才进行
+          # 可以不配置
+          livenessProbe: 
             httpGet:
               path: /
               port: 8080
             initialDelaySeconds: 60
             timeoutSeconds: 5
             failureThreshold: 3
-            periodSeconds: 10 # 这里的配置就是，容器启动60秒后，等待就绪探针完毕，每隔10秒检查一次容器是否存活，如果连续3次失败，则认为容器不再存活，将会进行重建Pod
-      volumes: # 定义挂载卷
-        - name: app-yml # 定义卷的名称，上面已经使用了这个卷名称挂载
-          configMap: # 这个卷是一个ConfigMap类型的
-            name: app-gateway-yml # 这里就是ConfigMap资源的名称
-            items: # 可以定义这个ConfigMap中的哪些资源添加到卷中，如果不写items，那就是默认全部
-              - key: bootstrap.yml # key 定义卷中的名称，Path定义ConfigMap中的资源名称，也就是实现了一个重命名
+            # 这里的配置就是，容器启动60秒后，等待就绪探针完毕，每隔10秒检查一次容器是否存活
+            # 如果连续3次失败，则认为容器不再存活，将会进行重建Pod
+            periodSeconds: 10 
+          # 容器的启动探针配置，用于判断容器是否已经启动，这个探针是最先执行的，也是执行一次，不像存活探针，一直监听
+          # 可以不配置
+          startupProbe:
+            httpGet:
+              path: /
+              port: 8080
+            # 成功多少次就认为启动成功
+            successThreshold: 1
+            timeoutSeconds: 5
+            failureThreshold: 3
+            # 这里的配置就是，每隔10秒检查一次容器是否启动，只要成功检查一次，就认为启动成功
+            # 如果连续3次失败，则认为容器不再存活，将会进行重建Pod
+            periodSeconds: 10
+      # 定义挂载卷
+      # 可以不配置
+      volumes:
+          # 定义卷的名称，上面已经使用了这个卷名称挂载
+        - name: app-yml
+          # 这个卷是一个ConfigMap类型的
+          configMap:
+            # 这里就是ConfigMap资源的名称
+            name: app-gateway-yml
+            # 可以定义这个ConfigMap中的哪些资源添加到卷中，如果不写items，那就是默认全部
+            items:
+                # key 定义卷中的名称，Path定义ConfigMap中的资源名称，也就是实现了一个重命名
+              - key: bootstrap.yml 
                 path: bootstrap.yml
-      dnsPolicy: ClusterFirst # DNS策略，这里配置了 ClusterFirst 集群的DNS优先，也就是优先从集群的DNS查找，找不到在找NodePort主机的DNS
-      restartPolicy: Always # 重启策略，也就是当服务异常挂掉的时候，判断是否需要进行重启，这里配置 Always 也就是始终都要重启，一旦挂掉就重启
-      terminationGracePeriodSeconds: 30 # 在容器销毁的时候，是允许有一个关闭前的窗口的，允许进行一些操作在关闭容器，比如记录错误日志等
+      # DNS策略，这里配置了 ClusterFirst 集群的DNS优先，也就是优先从集群的DNS查找，找不到在找NodePort主机的DNS
+      # 可以不配置
+      dnsPolicy: ClusterFirst
+      # 重启策略，也就是当服务异常挂掉的时候，判断是否需要进行重启，这里配置 Always 也就是始终都要重启，一旦挂掉就重启
+      # 可以不配置
+      restartPolicy: Always
+      # 在容器销毁的时候，是允许有一个关闭前的窗口的，允许进行一些操作在关闭容器，比如记录错误日志等
+      # 可以不配置
+      terminationGracePeriodSeconds: 30 
+```
+
+
+### Pod 资源（管理Pod容器）
+
+- 前面介绍过，Deployment使用于管理Pod容器的
+- 但是，我们也可以直接管理Pod资源
+- 但是不建议这样使用
+- 只建议在测试构建Pod的时候进行测试使用
+- 因为直接使用Pod这种，可能会给集群资源管理造成一些混乱
+
+- 官网文档
+
+```shell
+https://kubernetes.io/zh-cn/docs/concepts/workloads/pods/pod-lifecycle/
+```
+
+- 下面给出一个案例，结合注释进行说明
+- 前面在 Deployment 资源中说了，kind=Deployment 的 spec.template 属性就是Pod的配置
+- 因此，一些其他的配置，就在这边进行讲解了
+- 不在添加到Deployment中进行说明
+
+```shell
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: default
+  name: nginx-pod
+  lables:
+    k8s-app: nginx
+    version: 1.0
+spec:
+  containers:
+    - name: nginx
+      # 这里直接使用官网仓库拉取镜像
+      image: nginx:1.7.9
+      # 这里拉取镜像的策略是，本地没有就拉取，有就不再拉取
+      imagePullPolicy: IfNotPresent
+      # 定义了容器启动后执行的命令
+      # 实际上就是执行： nginx -g 'daemon off;'
+      # 用于将nginx进行前台运行
+      command:
+        - nginx
+        - "-g"
+        - "daemon off;"
+      # 设置工作路径
+      workingDir: /usr/share/nginx/html
+      ports:
+        - name: http
+          protocol: http
+          containerPort: 80
+      # 设置容器的环境变量
+      env:
+        # 可以设置多个环境变量
+        # 都以name-value键值对的方式定义
+        - name: APP_ENV
+          value: "dev"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+      restartPolicy: OnFailure
 ```
 
 ## spring-cloud 微服务部署到k8s
