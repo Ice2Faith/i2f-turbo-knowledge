@@ -386,6 +386,14 @@ ps -ef | grep -v grep | grep `netstat -lnp | grep 3306 | awk '{print $7}' | awk 
 telnet [IP] [端口]
 telnet 192.168.1.123 8080
 telnet www.baidu.com 80
+
+# 其他可选的方案，适用于linux没有安装telnet时使用
+nc -vz 192.168.1.123 8080
+curl -I 192.168.1.123:8080
+wget -q --spider 192.168.1.123:8080
+
+# 下面这种只适用于TCP通信
+echo > /dev/tcp/192.168.1.123/8080
 ```
 - 获取本机IP地址
 ```shell script
@@ -531,6 +539,44 @@ firewall-cmd --zone=public --add-port=80/tcp --premanent
 firewall-cmd --reload
 ```
 
+- 案例
+- 开放 8080 端口号
+
+```shell
+firewall-cmd --zone=public --add-port=8080/tcp --permanent
+firewall-cmd --reload
+```
+
+- 关闭 8080 端口
+
+```shell
+firewall-cmd --zone=public --remove-port=8080/tcp --permanent
+firewall-cmd --reload
+```
+
+- 只允许指定网段访问 8080 端口
+
+```shell
+# 删除所有来源
+firewall-cmd --zone=public --remove-port=8080/tcp --permanent
+
+# 仅允许指定网段，富规则，优先级比普通规则高
+firewall-cmd --zone=public --add-rich-rule='rule family="ipv4" source address="192.168.1.0/24" port protocol="tcp" port="8080" accept' --permanent
+
+firewall-cmd --reload
+```
+
+- 只限制指定网段访问 8080 端口
+
+```shell
+# 一般还要添加普通规则允许其他网段访问
+firewall-cmd --zone=public --remove-port=8080/tcp --permanent
+
+firewall-cmd --zone=public --add-rich-rule='rule family="ipv4" source address="192.168.2.0/24" port protocol="tcp" port="8080" reject' --permanent
+
+firewall-cmd --reload
+```
+
 
 ---
 ## 防火墙 iptables
@@ -637,6 +683,44 @@ iptables-save > /etc/sysconfig/iptables
 iptables-restore < [文件]
 
 iptables-restore < /etc/sysconfig/iptables
+```
+
+- 案例
+- 开放 8080 端口号
+
+```shell
+iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
+service iptables save
+```
+
+- 关闭 8080 端口
+
+```shell
+iptables -D INPUT -p tcp --dport 8080 -j ACCEPT
+service iptables save
+```
+
+- 只允许指定网段访问 8080 端口
+
+```shell
+# 删除所有来源
+iptables -D INPUT -p tcp --dport 8080 -j ACCEPT
+
+# 仅允许指定网段，富规则，优先级比普通规则高
+iptables -A INPUT -p tcp --dport 8080 -s 192.168.1.0/24 -j ACCEPT
+
+# 补充默认拒绝策略
+iptables -A INPUT -p tcp --dport 8080 -j REJECT
+
+service iptables save
+```
+
+- 只限制指定网段访问 8080 端口
+
+```shell
+iptables -I INPUT -p tcp --dport 8080 -s 192.168.2.0/24 -j REJECT
+
+service iptables save
 ```
 
 ---
