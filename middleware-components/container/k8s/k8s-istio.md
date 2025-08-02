@@ -121,6 +121,16 @@ https://www.cnblogs.com/vitochen/p/18934987#_lab2_1_1
 - 实际上的作用和k8s原本的Ingress网关类似
 - 主要就是起到一个负载均衡转发的功能
 - 将流量转发到对应的hosts的VirtualService上去
+- 也许，你会有个疑问，都有了Ingress了，还要这个Gateway干嘛
+- 其实，istio是对k8s的拓展
+- 并不是替代k8s的功能
+- 所以，Gateway的作用就是
+- 用ingressgateway将流量转入istio构建的ServiceMesh服务网格中
+- 用egressgateway将流量从ServiceMesh服务网格中转出
+- 怎么理解了？也就是说，如果不流入服务网格
+- 那么久还是原来的k8s功能
+- 流入了服务网格，那么久进入了istio构建的体系中
+- 也就是，istio在k8s的基础上拓展出了一层
 
 ```yaml
  apiVersion: networking.istio.io/v1alpha3
