@@ -1151,6 +1151,14 @@ sudo pkill -KILL -u [用户名]
 sudo pkill -KILL -u ftp
 ```
 
+- 为用户添加组
+
+```shell
+usermod -aG [用户组] [用户名]
+
+usermod -aG docker app
+```
+
 ## 组
 - 添加组
 ```shell script

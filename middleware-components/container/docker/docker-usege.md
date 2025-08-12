@@ -116,6 +116,14 @@ docker ps
 docker ps -a
 ```
 
+- 如果想要看完整的docker的启动命令
+- 也就是在 DOckerfile 中写的 ENTRYPOINT 的实际运行值的话
+- 可以这样看，不截断命令，并使用JSON格式输出
+
+```shell
+docker ps --no-trunc --format json
+```
+
 - 进入一个正在运行的容器exec
     - 使用docker ps之后，会方辉container id容器ID
     - 在后续对容器进行操作都是基于这个容器ID的
@@ -179,8 +187,21 @@ docker save 镜像名称 -o 保存的镜像文件名
 docker load -i 加载的镜像文件名称
 ```
 
+
 - 同时，你也可以在dockerhub上注册自己的账号，将自己创建的镜像，提交到远程
 - 这里不给出
+
+### 普通用户使用docker
+
+- 默认情况下，docker是运行在docker组的
+- 使用root用户访问是正常的
+- 但是使用普通用户访问时，可能会提示权限不足
+- 这种情况下，只需要将用户添加到docker组中即可
+- 下面这条命令就将app用户添加到docker组中了
+
+```shell
+usermod -aG docker app
+```
 
 ### 容器的开机自启动
 
@@ -342,6 +363,17 @@ docker images
 
 ```shell
 docker run --rm -p 80:8080 test-jar-img --server.port=8080
+```
+
+- 查看镜像构建的历史
+- 将会以不截断命令的方式，用JSON格式输出这个镜像的构建过程
+- 也就是相当于查询其DOckerfile是怎么编写的
+- 虽然有一些差异
+
+```shell
+docker image history --no-trunc --format json [镜像名]
+
+docker image history --no-trunc --format json redis
 ```
 
 ## 完结
@@ -610,6 +642,8 @@ vi /etc/docker/daemon.json
 ```
 
 - 下面，我们来添加Dockerfile
+- 放到和 pom.xml 同级的目录中
+- 如果是多模块项目，那就每个需要打包为镜像的模块都添加
 
 ```shell
 vi Dockerfile
@@ -820,6 +854,19 @@ docker tag busybox 192.168.x.x:5000/busybox:v1.0
 docker push 192.168.x.x:5000/busybox:v1.0
 ```
 
+- 如果是使用harbor这样的具有认证的仓库
+- 那么就需要先登录仓库
+
+```shell
+docker login 192.168.1.101:80 -u admin -p harbor12345
+```
+
+- 如果之前已经登录过了，也可以选择强制退出
+
+```shell
+docker logout 192.168.1.101:80
+```
+
 ### 打包自己的镜像并推送
 
 - 下面，我们进行一个简单的案例
@@ -887,3 +934,73 @@ docker push 192.168.x.x:5000/web-app:v1.0
 - 在浏览器中，刷新私服的UI
 - 就能够看到镜像了
 
+## nginx 转发私服配置
+
+- 添加nginx转发配置
+- 这里假定代理这台nginx的IP为 192.168.1.102
+- 代理的源IP为 192.168.1.110
+
+```shell
+   server {
+    listen       10080;
+    server_name  localhost;
+
+    client_max_body_size 2048M;
+
+    location ^~/ {
+         proxy_pass http://192.168.1.110:80/;
+         proxy_connect_timeout      600s;
+         proxy_send_timeout         600s;
+         proxy_read_timeout         600s;
+         proxy_set_header Host $host;
+         proxy_set_header X-Real-IP $remote_addr;
+         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header Connection "upgrade";
+         proxy_set_header Upgrade $http_upgrade;
+         proxy_set_header X-Forwarded-Proto $scheme;
+      }
+   }
+```
+
+- docker添加代理配置
+
+```shell
+mkdir -p /etc/systemd/system/docker.service.d/
+vi /etc/systemd/system/docker.service.d/http-proxy.conf
+```
+
+- 添加如下配置
+- 也就是将转发的地址改到nginx的代理端点
+
+```shell
+[Service]
+Environment="HTTP_PROXY=http://192.168.1.102:10080"
+Environment="HTTPS_PROXY=https://192.168.1.102:10080"
+Environment="NO_PROXY=localhost,127.0.0.1"
+```
+
+- 我这里因为是使用IP访问，没有配置HTTPS
+- 因此，后还需要添加这个配置，如果有HTTPS配置，那可以不用下面的配置
+- 添加不安全的仓库配置
+
+```shell
+vi /etc/docker/daemon.json
+```
+
+- 添加insecure配置
+
+```json
+{
+  "insecure-registries": [
+    "192.168.1.102:10080",
+    "192.168.1.110:80"
+  ]
+}
+```
+
+- 最后应用配置重启docker
+
+```shell
+systemctl daemon-reload
+systemctl restart docker
+```

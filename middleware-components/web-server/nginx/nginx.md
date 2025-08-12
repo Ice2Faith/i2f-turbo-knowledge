@@ -366,7 +366,7 @@ http {
 		   # 但是如果在vue等单页应用中出现问题，可使用$uri 
 		   # CRLF 漏洞原理是在 302 redirect 的location 字段才有效
 		   # 在try_files中可忽略
-           try_files   $request_uri $request_uri/ /index.html;
+           try_files   $uri $uri/ /index.html;
         }
 
     }
@@ -384,7 +384,7 @@ http {
           alias /home/apps/app/dist/;
           index index.html index.htm =404;
           # 二级路径时，需要带上二级路径的尝试/app/
-          try_files  $request_uri $request_uri/ /app/index.html;
+          try_files  $uri $uri/ /app/index.html;
        }
     }
 }
