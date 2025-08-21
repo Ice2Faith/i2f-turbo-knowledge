@@ -69,8 +69,12 @@
                 <logback.env>test</logback.env>
 
                 <docker.remote.host>192.168.x.x:2375</docker.remote.host>
+
                 <docker.registry.host>192.168.x.x:5000</docker.registry.host>
-                <docker.registry.username>/i2f</docker.registry.username>
+                <docker.registry.prefix>/i2f</docker.registry.prefix>
+                <docker.registry.username>admin</docker.registry.username>
+                <docker.registry.password>harbor123456</docker.registry.password>
+
                 <docker.run.port>8080:8080</docker.run.port>
             </properties>
             <build>
@@ -85,17 +89,23 @@
                                 <dockerHost>http://${docker.remote.host}</dockerHost>
                                 <!-- Docker 推送镜像仓库地址-->
                                 <pushRegistry>http://${docker.registry.host}</pushRegistry>
+                                <authConfig>
+                                    <push>
+                                        <username>${docker.registry.username}</username>
+                                        <password>${docker.registry.password}</password>
+                                    </push>
+                                </authConfig>
                                 <images>
                                     <image>
                                         <!--由于推送到私有镜像仓库，镜像名需要添加仓库地址-->
                                         <name>
-                                            ${docker.registry.host}${docker.registry.username}/${pom.artifactId}:${pom.version}
+                                            ${docker.registry.host}${docker.registry.prefix}/${pom.artifactId}:${pom.version}
                                         </name>
                                         <!--定义镜像构建行为-->
                                         <build>
                                             <dockerFile>${pom.basedir}/Dockerfile</dockerFile>
                                             <!--定义维护者-->
-                                            <maintainer>i2f</maintainer>
+                                            <maintainer>app</maintainer>
                                             <filter>@</filter>
                                             <assemblies>
                                                 <assembly>
@@ -114,6 +124,10 @@
                                                                     <include>*.tgz</include>
                                                                     <include>*.zip</include>
                                                                 </includes>
+                                                            </fileSet>
+                                                            <fileSet>
+                                                                <directory>${project.basedir}/assets</directory>
+                                                                <outputDirectory>assets</outputDirectory>
                                                             </fileSet>
                                                             <fileSet>
                                                                 <directory>${project.basedir}/src/main/resources
