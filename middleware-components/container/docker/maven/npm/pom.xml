@@ -81,6 +81,49 @@
                 <configuration>
                     <workingDirectory>${project.basedir}</workingDirectory>
                     <npmRegistryURL>https://registry.npmmirror.com</npmRegistryURL>
+                    <!--
+                    如果内网，没有公网访问，可以先下载到本地的方式进行使用
+                    这里定义一个属性，用于表示根路径
+                    <frontend.directory>/opt/frontend-maven</frontend.directory>
+                    直接执行maven package
+                    就会报错，首先是无法下载node，那我们找有网络的机器下载
+                    https://nodejs.org/dist/v18.17.1/node-v18.17.1-linux-x64.tar.gz
+                    然后放到下面的download路径下面
+                    ${frontend.directory}/download/v18.17.1/node-v18.17.1-linux-x64.tar.gz
+                    这样，再次进行package，就能够找到并自动安装node到下面的${frontend.directory}/install路径下面
+                    接下来就是报错无法下载pnpm，同样找有网络的机器下载
+                    https://registry.npmjs.org/pnpm/-/pnpm-10.12.4.tgz
+                    直接下载下来
+                    进入 ${frontend.directory}/install 路径
+                    应该目录目录结构是这样的
+                    node
+                    ++ node
+                    然后，我们创建路径，最终如下
+                    install
+                    ++ node
+                    +++++ node
+                    +++++ node_modules
+                    ++++++++ pnpm
+                    解包 pnpm-10.12.4.tgz 得到如下目录
+                    package
+                    ++ bin
+                    ++ dist
+                    接下来，把package目录中的所有东西移动到 install/node/node_modules/pnpm 目录下
+                    最终，形成这样的目录结构
+                    install
+                    ++ node
+                    +++++ node
+                    +++++ node_modules
+                    ++++++++ pnpm
+                    +++++++++++ bin
+                    +++++++++++ dist
+                    这样，就完成了安装基础环境
+                    之后正常进行package即可
+                    -->
+                    <!-- 定义了安装的路径 -->
+                    <installDirectory>${frontend.directory}/install</installDirectory>
+                    <!-- 定义了下载的路径，这里可以写为file://协议的本机路径 -->
+                    <nodeDownloadRoot>file://${frontend.directory}/download/</nodeDownloadRoot>
                 </configuration>
                 <executions>
                     <execution>

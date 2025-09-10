@@ -161,6 +161,12 @@ mvn clean package
 ```
 mvn clean package -DskipTests -Dmaven.test.skip=true
 ```
+
+- 清空并打包跳过测试，指定profile
+
+```
+mvn clean package -DskipTests -Dmaven.test.skip=true -P dev
+```
 - 将jar安装到本地仓库
 ```bash
 mvn install:install-file -DgroupId=com.xxx -DartifactId=xxx -Dversion=1.0 -Dpackaging=jar -Dfile=xxx-1.0.jar
