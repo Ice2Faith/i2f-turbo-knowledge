@@ -1159,6 +1159,13 @@ usermod -aG [用户组] [用户名]
 usermod -aG docker app
 ```
 
+- 添加软连接
+
+```shell
+ln -sf [源路径] [目标路径]
+ln -sf /home/web/apps /opt/apps
+```
+
 ## 组
 - 添加组
 ```shell script
