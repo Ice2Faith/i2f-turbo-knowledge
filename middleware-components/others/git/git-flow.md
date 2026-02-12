@@ -231,7 +231,7 @@
 
 #### 3.3.1. 分支包含关系图 images/git-include-graph.png
 
-![git-include-graph.png](images%2Fgit-include-graph.png)
+![git-include-graph.png](./images/git-include-graph.png)
 
 - 关系图解读
   - release分支，也就是基线分支
@@ -264,7 +264,7 @@
 
 #### 3.3.2. 分支生命周期示例图 images/git-merge-graph.png
 
-![git-merge-graph.png](images%2Fgit-merge-graph.png)
+![git-merge-graph.png](./images/git-merge-graph.png)
 
 - 示例图解读
 - 按照时间线来说，从下往上
@@ -283,6 +283,60 @@
 - 将publish/240808分支合并进了request2分支
 - request2分支合并进入release分支
 - 完成基线确认
+
+#### 3.3.3. 分支功能流转关系图 images/git-branches-state-graph.png
+
+![git-merge-graph.png](./images/git-branches-state-graph.png)
+
+- 示例图解读
+- 基本原则
+  - 1.一切源于release
+    - 所有分支都从release分支创建
+  - 2.走向develop/test/release
+    - 所有的修改都应该进入develop,test,release
+    - 所有修改都应该进过自测，所以要进入 develop
+    - 部分团队，不使用 develop 可以忽略，直接在开发人员自己的电脑上通过 feature 自测
+    - 所有修改都应该经过验证，所以要进入 test
+    - 所有修改都应该是有效的/有意义的变更，所以要进入 release
+  - 3.走向develop为了开发之间联调
+  - 4.走向test为了提交测试人员测试
+  - 5.走向release为了上线发布
+  - 6.未经验证的严禁进入release
+  - 7.保持分支的DAG图单向流动
+- 操作规范
+  - 1.功能数量develop > test > release
+  - 2.问题数量develop > test > release
+  - 3.稳定性release > test > develop
+  - 4.hotfix其实是一个特殊的release
+    - hotfix是为了修复线上问题，紧急处理的
+    - 既然是紧急处理，那肯定就是得处理好问题
+    - 因此处理好之后，就是可信的，经过验证的
+  - 5.release可以合并到其他任意分支
+    - release的内容是经过验证的，可信的，因此可以进行合并
+  - 6.hotfix可以合并到其他任意分支
+    - hotfix是一个特殊的release，其本身就等价于release
+  - 7.feature分支之间可以互相合并
+    - 涉及到多个feature之间需要进行协作的时候
+    - 常常需要将多个feature合并为一个feature
+    - 让开发人员共同维护这个feature
+  - 8.test可以合并到develop(不建议)
+    - 理论上，test和develop是特殊的分支
+    - 应该只有入度，没有出度
+    - 但是，若是有特殊情况，还是允许test合并到develop的
+    - 一般不建议这样操作
+  - 9.test严禁合并到其他任意分支
+    - test 分支的内容主要包括两部分
+    - 经过测试验证通过的，以及还未经过测试验证通过的
+    - test一般只有入度，没有出度
+    - 也就是只能合入，不能合并到其他分支
+  - 10.develop严禁合并到其他任意分支
+    - develop一般只有入度，没有出度
+    - 也就是只能合入，不能合并到其他分支
+  - 11.其他情况，看图分析
+  - 12.各个团队命名上可能不太一样
+    - 有的团队，不使用 develop ,直接在 feature 上进行自测
+    - 有的团队，不使用 release ,而是直接使用 master,那么其实地位等同于这里的 release
+    - 综合来说，根据各自团队的实际情况，在正确理解分支合并关系的情况下，灵活调整
 
 ### 3.4. 案例讲解
 - 上次上线热修复分支
@@ -504,15 +558,15 @@ feat(费用报表): 添加统计费用报表逻辑
 
 - 插件 images/git-commit-plugin.png
 
-![git-commit-plugin.png](images%2Fgit-commit-plugin.png)
+![git-commit-plugin.png](./images/git-commit-plugin.png)
 
 - 提交消息 images/git-commit-message.png
 
-![git-commit-message.png](images%2Fgit-commit-message.png)
+![git-commit-message.png](./images/git-commit-message.png)
 
 - 提交设置 images/git-commit-setting.png
 
-![git-commit-setting.png](images%2Fgit-commit-setting.png)
+![git-commit-setting.png](./images/git-commit-setting.png)
 
 ### 5.1. 检出指定分支
 
@@ -523,11 +577,11 @@ feat(费用报表): 添加统计费用报表逻辑
 
 - GIT状态栏 images/git-status.png
 
-![git-status.png](images%2Fgit-status.png)
+![git-status.png](./images/git-status.png)
 
 - GIT状态栏菜单 images/git-status-menu.png
 
-![git-status-menu.png](images%2Fgit-status-menu.png)
+![git-status-menu.png](./images/git-status-menu.png)
 
 ### 5.2. 拉取代码
 
@@ -537,7 +591,7 @@ feat(费用报表): 添加统计费用报表逻辑
 
 - Git快捷操作 images/git-shortcut.png
 
-![git-shortcut.png](images%2Fgit-shortcut.png)
+![git-shortcut.png](./images/git-shortcut.png)
 
 ### 5.3. 推送代码
 
@@ -596,7 +650,7 @@ feat(费用报表): 添加统计费用报表逻辑
 
 - GIT菜单栏 images/git-menu.png
 
-![git-menu.png](images%2Fgit-menu.png)
+![git-menu.png](./images/git-menu.png)
 
 ### 5.8. 代码还没提交，但是不想要提交刚才的修改
 
@@ -618,7 +672,7 @@ feat(费用报表): 添加统计费用报表逻辑
 
 - GIT日志 images/git-log.png
 
-![git-log.png](images%2Fgit-log.png)
+![git-log.png](./images/git-log.png)
 
 ### 5.10. 代码需要回退到之前的版本
 
