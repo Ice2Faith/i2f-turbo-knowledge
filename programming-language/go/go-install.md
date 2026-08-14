@@ -44,7 +44,7 @@ go version
 - 打开命令行
 - 配置镜像
 ```shell script
-go env -w GOPROXY=https://mirrors.aliyun.com/goproxy/
+go env -w GOPROXY=https://mirrors.aliyun.com/goproxy/,direct
 ```
 - go从11版本之后，就支持了模块
 - 配置打开模块
