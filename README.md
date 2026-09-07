@@ -1,6 +1,8 @@
 # i2f-turbo-knowledge
 
 - 知识库文档索引，涵盖编程语言、中间件组件、操作系统等方面的技术文档
+- github仓库：[github](https://github.com/Ice2Faith/i2f-turbo-knowledge.git)
+- gitee仓库：[gitee](https://github.com/Ice2Faith/i2f-turbo-knowledge.git)
 
 ---
 
