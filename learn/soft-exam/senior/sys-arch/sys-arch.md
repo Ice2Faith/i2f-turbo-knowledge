@@ -189,4 +189,8 @@
 
 # 软件架构基础
 
-[05-software-archtecture-base.md](chapters/05-software-archtecture-base.md)
+[05-software-architecture-base.md](chapters/05-software-architecture-base.md)
+
+# 软件架构进阶
+
+[06-software-architecture-senior.md](chapters/06-software-architecture-senior.md)
