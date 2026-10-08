@@ -442,3 +442,16 @@
 
 - 详细文档：[web-cdn-import.md](programming-language/web/web-cdn-import.md)
   - WEB资源的CDN引入方式，包括静态引入、公共CDN源、国内镜像CDN替换、常用库CDN引用（Vue/Element-UI/Vant/Axios等）
+
+---
+
+# 学习
+
+## 软件考试
+
+### 高级
+
+- 高级软件考试
+
+- 详细文档：[sys-arch.md](learn/soft-exam/senior/sys-arch/sys-arch.md)
+  - 系统架构师
