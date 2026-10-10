@@ -194,3 +194,7 @@
 # 软件架构进阶
 
 [06-software-architecture-senior.md](chapters/06-software-architecture-senior.md)
+
+# 软件架构实战
+
+[07-software-architecture-apply.md](chapters/07-software-architecture-apply.md)
