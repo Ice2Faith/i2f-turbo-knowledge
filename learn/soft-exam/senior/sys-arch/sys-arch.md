@@ -198,3 +198,7 @@
 # 软件架构实战
 
 [07-software-architecture-apply.md](chapters/07-software-architecture-apply.md)
+
+# 论文写作指导
+
+[08-paper-guide.md](chapters/08-paper-guide.md)
