@@ -1,0 +1,1 @@
+ffmpeg -y -i chapters\01-software-engineering.mp3 -stream_loop -1 -i fade.mp3 -vn  -filter_complex  "[0:a]volume=1.0[tts];  [1:a]volume=0.1[bgm];  [tts][bgm]amix=inputs=2:duration=shortest:dropout_transition=0[out]"  -map "[out]" -c:a libmp3lame -b:a 128k -ar 44100 -ac 2 01-software-engineering.mix.mp3
