@@ -467,6 +467,194 @@ number:
 ;
 ```
 
+## 左递归问题
+
+- 前面的 expr 语法中，有的子分支时以 expr 开头的
+- 这样，expr 的最多边元素是 expr 就构成了左递归
+- 这种属于子元素的直接左递归
+- 还有间接左递归的形式，也就是，子元素的语法中，第一个元素使父元素，从而形成简介左递归
+
+### 经典解法一：LL自上而下的写法
+
+> 让低优先级的连接高优先级的
+
+- 这是经典的LL自上而下的写法
+- antlr 的低版本，大多数都采用这种写法
+    - 只不过在 antlr4 中，这种写法不常见了
+    - 因为会写成一个倒置的冗长的依赖链
+- expr 指向最低优先级的 addSubExpr 加减法
+- addSubExpr 分别指向
+    - 更高优先级的 mulDivExpr
+    - 或，`addSubExpr ('+'|'-') mulDivExpr` 自身与高优先级的结合
+- 因此，表现形式就是，最低优先级的最先定义
+- 让低优先级的定义内部优先返回高优先级，其次再返回自身与高优先级的结合
+- 也可以光看 mulDivExpr 定义的部分的形式
+
+```antlrv4
+grammar Demo;
+
+INTEGER: ('0' X?)? (DIGIT| [1-9] DIGIT+) L?;
+
+fragment DIGIT: [0-9];
+
+fragment L: [lL];
+fragment X: [xX];
+
+script:
+    expr EOF
+;
+
+expr:
+    addSubExpr
+;
+
+addSubExpr:
+    mulDivExpr
+    | addSubExpr ('+'|'-') mulDivExpr
+    ;
+
+mulDivExpr:
+    number
+    | mulDivExpr ('*'|'/') number
+    ;
+
+number:
+    INTEGER
+;
+```
+
+### 经典解法二：直接0到多后置
+
+- 这也是经典的LL自上而下的写法
+- antlr 的低版本，大多数都采用这种写法
+    - 只不过在 antlr4 中，这种写法不常见了
+    - 因为会写成一个倒置的冗长的依赖链
+- 核心思想也是让低优先级的连接高优先级的
+- 高优先级的结合完毕，在进行低优先级的结合
+
+```antlrv4
+grammar Demo;
+
+INTEGER: ('0' X?)? (DIGIT| [1-9] DIGIT+) L?;
+
+fragment DIGIT: [0-9];
+
+fragment L: [lL];
+fragment X: [xX];
+
+script:
+    expr EOF
+;
+
+expr:
+    mulDivExpr ( ('+'| '-') mulDivExpr)*
+;
+
+mulDivExpr:
+    number (('*'|'/') number)*
+;
+
+number:
+    INTEGER
+;
+```
+
+## Antlr4 特有语法支持
+
+- 上面的部分，大部分的语法、词法写法基本是一致的
+- 主要区别就是左递归的支持，可能有的不支持左递归的写法
+- 但是，大部分语法规则写法是一致的
+- 下面，这些是 Antlr4 专门额外提供的一些能力
+
+### 多分支别名
+
+- 当某个语法有多个分支时，如果没有别名的话
+- 在编写语义实现的时候，往往要进行子元素个数和类型的判断，来决定是哪一个分支
+- 这个时候，Antlr4 提供了别名，来额外生成这样的 hook 入口函数
+- 这样直接使用 hook 函数，就能够明确的知道是哪个分支
+- 同时，终结符或非终结符，当出现多次或需要明确取一个明确的元素的时候
+- 不使用别名，只能根据索引下标来取子元素
+- 这时候，Antlr4 提供了元素别名，来额外在生成的代码中，添加对应的别名函数
+- 用来直接获取这个元素，而不是使用下标索引
+- 下面例子中
+    - 针对 expr 的这几个分支，都使用 `# 分支别名` 后缀进行分支别名指定
+        - 这样，在未来进行 Visitor 实现语义的时候
+        - 就能够有一个单独的别名的 hook 函数进行实现
+        - 就不用判断到底是哪个分支了
+    - 对其中的元素，使用 `元素别名=` 对元素指定别名
+        - 这样，在未来进行 Visitor 实现语义的时候
+        - 就能够直接通过 expr 元素获取其别名对应的元素
+        - 就不用再使用下标了
+
+```antlrv4
+grammar Demo;
+
+INTEGER: ('0' X?)? (DIGIT| [1-9] DIGIT+) L?;
+
+DIGIT: [0-9];
+
+fragment L: [lL];
+fragment X: [xX];
+
+script:
+    expr EOF
+;
+
+expr:
+    lp='(' mid=expr rp=')' # parenExpr
+    | left=expr oper=('*'|'/') right=expr # mulDivExpr
+    | left=expr oper=('+'|'-') right=expr # addSubExpr
+    | num=number # numExpr
+;
+
+number:
+    INTEGER
+;
+```
+
+### 右结合支持
+
+- 在默认情况下，同优先级的都是从左到右进行运算的
+- 先进性左边的，再进行右边的，这样的是左结合
+- 但是某些情况下，希望先计算右边的，再计算左边的
+- 这种时候，就需要右结合
+- 比如，`a=b=1` 这种需求，就需要有递归，先计算 `b=1` 得到值，才能进行 `a=b`
+- 这个时候，就需要在这个分支上，添加 `<assoc=right>` 来指定使用右递归
+
+```antlrv4
+grammar Demo;
+
+INTEGER: ('0' X?)? (DIGIT| [1-9] DIGIT+) L?;
+
+IDENTIFIER: [a-zA-Z_][a-zA-Z0-9_]*;
+
+fragment DIGIT: [0-9];
+
+fragment L: [lL];
+fragment X: [xX];
+
+script:
+    expr EOF
+;
+
+expr:
+    '(' expr ')'
+    | expr ('*'|'/') expr
+    | expr ('+'|'-') expr
+    | <assoc=right> expr '=' expr
+    | variable
+    | number
+;
+
+variable:
+    IDENTIFIER
+    ;
+
+number:
+    INTEGER
+;
+```
+
 ## 脚本语言参考（Funic）
 
 - 更多示例代码，可以参考我的 github 项目
@@ -490,7 +678,18 @@ https://github.com/ice2faith/i2f-turbo-java/tree/main/i2f-extension/i2f-extensio
 https://gitee.com/ice2faith/i2f-turbo-java/tree/main/i2f-extension/i2f-extension-antlr4-funic
 ```
 
-## 简单计算器
+## 官方参考
+
+- 提供了一些官方的编程语言的语法定义
+- 在编写和学习的过程中，可以参考已有的编程语言的一些语法规则是怎么写的
+- 从而借鉴写法或用来未自己编写语法规则提供思路
+- 官方地址：[Antlr4 编程语言参考合集](https://github.com/antlr/grammars-v4/tree/master)
+
+```shell
+https://github.com/antlr/grammars-v4/tree/master
+```
+
+## 简单计算器（普适版）
 
 ### 语法定义
 
@@ -603,6 +802,9 @@ intNumber:
     - 选择生成的目标语言为 Java
 - 选择 [Generate Antlr4 Recognizer] 生成 Antlr4 的语法识别器代码
 - 会生成这样的一些列文件
+    - 除了 Java 文件，都是可以删掉的
+    - Listener 也可以删掉，大部分时候不用
+    - 或者在配置的时候，就不勾选生成 Listener
 
 ```shell
 src
@@ -1188,6 +1390,245 @@ public class DefaultErrorStrategy extends org.antlr.v4.runtime.DefaultErrorStrat
         String errorMsg = "line " + line + ":" + charPositionInLine + " " + msg;
         throw new IllegalArgumentException(errorMsg);
     }
+}
+
+```
+
+## 简单计算器（深度优先版）
+
+- 如果，你的语法，只需要深度优先遍历进行计算
+- 即可得到你需要的结果
+- 或者，大部分情况都只需要深度优先遍历即可完成目标
+- 那么，完全可以使用上 Antlr4 提供的这些能力，从而简化开发
+    - 分支别名、参数别名
+    - BaseVisitor 基础的默认的深度优先遍历的实现，覆盖部分核心操作即可
+
+### 语法定义
+
+```antlrv4
+grammar Calc;
+
+@header {
+    package demo.calc.grammar;
+}
+
+fragment NUM: (DIGIT| [1-9] DIGIT+);
+fragment DIGIT: [0-9];
+fragment L: [lL];
+fragment F: [xX];
+fragment X: [xX];
+
+CONST_FLOAT: NUM '.' NUM F?;
+CONST_INTEGER: ('0' X?)? NUM L?;
+
+TERM_PAREN_L: '(';
+TERM_PAREN_R: ')';
+
+TERM_ADD: '+';
+TERM_SUB: '-';
+TERM_MUL: '*';
+TERM_DIV: '/';
+
+TERM_PERCENT: '%';
+
+TERM_EQ: '=';
+
+WS: [ \r\n\t] -> skip;
+
+script:
+    expr TERM_EQ? EOF
+;
+
+expr:
+    lop=lParen mid=expr rop=rParen # parenExpr
+    | prefix=prefixOperator val=expr # prefixOperExpr 
+    | val=expr suffix=suffixOperator # suffixOperExpr
+    | left=expr oper=mathMulDivOperator right=expr # mathMulDivOperExpr
+    | left=expr oper=mathAddSubOperator right=expr # mathAddSubOperExpr
+    | num=number # numExpr
+;
+
+lParen:
+    TERM_PAREN_L
+    ;
+
+rParen:
+    TERM_PAREN_R
+    ;
+
+prefixOperator:
+    TERM_SUB
+    ;
+
+suffixOperator:
+    TERM_PERCENT
+;
+mathMulDivOperator:
+    TERM_MUL|TERM_DIV
+    ;
+
+mathAddSubOperator:
+    TERM_ADD|TERM_SUB
+    ;
+
+number:
+    floatNumber
+    | intNumber
+;
+
+floatNumber:
+    CONST_FLOAT
+;
+
+intNumber:
+    CONST_INTEGER
+;
+```
+
+### 实现 Visitor 计算逻辑
+
+- 这里，BaseVisitor 的逻辑是深度优先的
+- 通过下面的这个默认实现，实现深度优先遍历
+
+```java
+    public T visitChildren(RuleNode node) {
+    T result = this.defaultResult();
+    int n = node.getChildCount();
+
+    for (int i = 0; i < n && this.shouldVisitNextChild(node, result); ++i) {
+        ParseTree c = node.getChild(i);
+        T childResult = c.accept(this);
+        result = this.aggregateResult(result, childResult);
+    }
+
+    return result;
+}
+```
+
+- 因此，每访问一个节点，先获取一个默认值 `defaultResult()`
+- 然后遍历每个子节点，获取子节点的值 `c.accept(this)`
+- 然后同一个节点中多个子节点之间的值允许进行聚合 `aggregateResult()`
+    - 也就是允许你将当前子元素的值与兄弟节点的值进行加减运算进行聚合等操作
+- 我们这里需要默认值吗？
+    - 我们可以不需要，默认返回的就是null
+    - 也可以需要默认值，那默认值就是0
+    - 因此，我们可以不重写 defaultResult
+- 我们需要处理哪些子节点的运算？
+    - 识别到，只有数值参与计算或数值字面量才需要处理
+    - 那么，只需要选择 floatNumber 、intNumber 这两个数值字面量，用于获取最初计算的值
+    - 还需要 prefixOperExpr、suffixOperExpr、mathMulDivOperExpr、mathAddSubOperExpr 等值的计算或者变化的语法规则
+    - 好了，完全足够了，其他的节点都是一些符号，或者直接值透传即可的，不需要覆盖，默认就行
+- 我们需要处理聚合吗？
+    - 经过我们的选取处理覆盖节点之后
+    - 剩下的都是一些运算符、终结符、这些都是不影响值变化的，只需要传递即可
+    - 默认的聚合是返回最后一个节点的值
+    - 但是，我们存在最后一个值实际上是一个运算符号、终结符的情况
+    - 比如，右括号、可选等号、以及EOF流结尾
+    - 如果按照默认的返回之后一个值，那默认是null
+    - 导致最终运算结果就会是null
+    - 因此，聚合逻辑就是
+    - 只要之后一个值不为null，那就返回最后一个值
+    - 否则就返回之前的值
+- 具体实现逻辑如下
+
+```java
+package demo.calc.impl;
+
+import demo.calc.grammar.CalcBaseVisitor;
+import demo.calc.grammar.CalcParser;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
+import java.math.RoundingMode;
+
+public class DefaultCalcVisitor extends CalcBaseVisitor<BigDecimal> {
+    public static final MathContext MATH_CONTEXT = new MathContext(20, RoundingMode.HALF_UP);
+
+    @Override
+    public BigDecimal visitPrefixOperExpr(CalcParser.PrefixOperExprContext ctx) {
+        BigDecimal value = visit(ctx.val);
+        String prefix = ctx.prefix.getText();
+        if ("-".equals(prefix)) {
+            return value.negate();
+        } else {
+            throw new IllegalStateException(" un-support prefix [" + prefix + "]!");
+        }
+    }
+
+    @Override
+    public BigDecimal visitSuffixOperExpr(CalcParser.SuffixOperExprContext ctx) {
+        BigDecimal left = visit(ctx.val);
+        String prefix = ctx.suffix.getText();
+        if ("%".equals(prefix)) {
+            return left.divide(BigDecimal.valueOf(100), MATH_CONTEXT);
+        } else {
+            throw new IllegalStateException(" un-support prefix [" + prefix + "]!");
+        }
+    }
+
+    @Override
+    public BigDecimal visitMathAddSubOperExpr(CalcParser.MathAddSubOperExprContext ctx) {
+        BigDecimal left = visit(ctx.left);
+        BigDecimal right = visit(ctx.right);
+        String oper = ctx.oper.getText();
+        if ("+".equals(oper)) {
+            return left.add(right, MATH_CONTEXT);
+        } else if ("-".equals(oper)) {
+            return left.subtract(right, MATH_CONTEXT);
+        } else {
+            throw new IllegalStateException(" un-support operator [" + oper + "]!");
+        }
+    }
+
+    @Override
+    public BigDecimal visitMathMulDivOperExpr(CalcParser.MathMulDivOperExprContext ctx) {
+        BigDecimal left = visit(ctx.left);
+        BigDecimal right = visit(ctx.right);
+        String oper = ctx.oper.getText();
+
+        if ("*".equals(oper)) {
+            return left.multiply(right, MATH_CONTEXT);
+        } else if ("/".equals(oper)) {
+            return left.divide(right, MATH_CONTEXT);
+        } else {
+            throw new IllegalStateException(" un-support operator [" + oper + "]!");
+        }
+    }
+
+    @Override
+    public BigDecimal visitIntNumber(CalcParser.IntNumberContext ctx) {
+        String text = ctx.CONST_INTEGER().getText().toLowerCase();
+        boolean isLong = text.endsWith("l");
+        if (isLong) {
+            text = text.substring(0, text.length() - 1);
+        }
+        BigDecimal value = null;
+        if (text.startsWith("0x")) {
+            value = new BigDecimal(new BigInteger(text.substring(2), 16));
+        } else if (text.startsWith("0")) {
+            value = new BigDecimal(new BigInteger(text.substring(1), 8));
+        } else {
+            value = new BigDecimal(text);
+        }
+        return value;
+    }
+
+    @Override
+    public BigDecimal visitFloatNumber(CalcParser.FloatNumberContext ctx) {
+        String text = ctx.CONST_FLOAT().getText().toLowerCase();
+        boolean isFloat = text.endsWith("f");
+        if (isFloat) {
+            text = text.substring(0, text.length() - 1);
+        }
+        return new BigDecimal(text);
+    }
+
+    @Override
+    protected BigDecimal aggregateResult(BigDecimal aggregate, BigDecimal nextResult) {
+        return nextResult == null ? aggregate : nextResult;
+    }
+
 }
 
 ```
