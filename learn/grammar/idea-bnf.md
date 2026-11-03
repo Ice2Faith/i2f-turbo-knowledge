@@ -7,7 +7,7 @@
 - 同时，这个章节和 antlr4 脚本语言开发，是相结合的
 - 先阅读有助于理解为什么这样做
 
-## 重要说明
+## 1. 重要说明
 
 - 在 IDEA 中，语法是不支持左递归的
 - 所以，一些在antlr4中的写法是不支持的
@@ -15,7 +15,7 @@
 - 因此，不必最求语义一致，只要大体语法上的表达大致一致即可
 - 也就是能够覆盖原本语法形式即可，不要求语义一致
 
-## 脚本语言参考（Funic）
+## 2. 脚本语言参考（Funic）
 
 - 更多示例代码，可以参考我的 github 项目
     - 这是一个自定义的脚本语言
@@ -33,11 +33,11 @@ https://github.com/ice2faith/i2f-turbo-java/tree/main/i2f-tools/i2f-jdbc-procedu
 https://gitee.com/ice2faith/i2f-turbo-java/tree/main/i2f-tools/i2f-jdbc-procedure-idea-plugin/src/main/java/i2f/turbo/idea/plugin/funic
 ```
 
-## 安装
+## 3. 安装
 
 - 先安装 IDEA 插件 [Plugin DevKit]
 
-## bnf 文法文件编写
+## 4. bnf 文法文件编写
 
 - 这里，将直接以 Antlr4 中的 Calc 简易计算器进行讲解
 - 下面直接给出对应的转换之后的结果 Calc.bnf
@@ -201,7 +201,7 @@ intNumber::=
 ;
 ```
 
-## 创建一个 Plugin 工程
+## 5. 创建一个 Plugin 工程
 
 - 安装了 DevKit 重启 IDEA 之后
 - 新建项目的时候，就可以选到 [IDE Plugin] 了
@@ -265,7 +265,7 @@ intellij {
 
 ```
 
-## 生成插件代码
+## 6. 生成插件代码
 
 - 安装了 DevKit 插件之后
 - 在 bnf 文件上右键，选择 [Generate Parser Code] 即可生成插件的 parser 语法解析器
@@ -276,7 +276,7 @@ intellij {
 - 在这个 flex 文件上右键，选择 [Run JFlex Generator] 即可在 grammar.parser 包下面生成 _CalcLexer.java 文件
     - 至此，通过插件生成代码就完成了
 
-## 配置插件
+## 7. 配置插件
 
 - 找到文件
     - src/main/resources/META-INF/plugin.xml
@@ -353,7 +353,7 @@ intellij {
 </extensions>
 ```
 
-## 编写插件实现
+## 8. 编写插件实现
 
 - 这个部分的内容很多
 - 所以，还是建议看 IDEA 官方的插件开发教程
@@ -364,12 +364,12 @@ intellij {
 https://plugins.jetbrains.com/docs/intellij/developing-plugins.html
 ```
 
-## 编译打包
+## 9. 编译打包
 
 - 直接通过 gradle 任务中的 intelijPlugin 插件提供的 buildPlugin 任务直接打包即可
 - 生成的一般是一个 jar 包或者一个 zip 压缩包
 
-## 插件安装
+## 10. 插件安装
 
 - 在IDEA插件的安装页面
 - 找到上方的更多按钮

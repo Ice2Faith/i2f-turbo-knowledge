@@ -6,36 +6,36 @@
 
 ---
 
-# 中间件组件（middleware-components）
+# 1. 中间件组件（middleware-components）
 
 - 中间件组件相关的文档，包括大数据、容器、数据库、消息队列、监控、对象存储等
 
-## 大数据（bigdata）
+## 1.1. 大数据（bigdata）
 
 - 大数据相关的组件，包括数据采集、流计算、分布式存储、资源协调等
 
-### Canal
+### 1.1.1. Canal
 
 - MySQL binlog增量数据监听与同步中间件
 
 - 详细文档：[canal.md](middleware-components/bigdata/canal/canal.md)
     - Canal增量数据监听中间件的原理、安装配置与使用，包括MySQL binlog开启、主从概念、工作原理等
 
-### Flink
+### 1.1.2. Flink
 
 - 实时流计算引擎
 
 - 详细文档：[flink-1.13.5.md](middleware-components/bigdata/flink/flink-1.13.5.md)
     - Flink 1.13.5环境安装与配置，包括local模式、standalone模式、standalone-HA高可用模式的部署
 
-### Hadoop
+### 1.1.3. Hadoop
 
 - 分布式存储与计算框架
 
 - 详细文档：[hadoop-3.md](middleware-components/bigdata/hadoop/hadoop-3.md)
     - Hadoop3环境安装，包括单机部署与集群部署配置、HDFS/YARN的启动与管理
 
-### Zookeeper
+### 1.1.4. Zookeeper
 
 - 分布式资源管理与协调框架
 
@@ -44,11 +44,11 @@
 
 ---
 
-## 容器（container）
+## 1.2. 容器（container）
 
 - 容器化相关的组件，包括Docker容器引擎、K8S容器编排平台等
 
-### Docker
+### 1.2.1. Docker
 
 - 容器引擎，提供应用的虚拟化与隔离运行能力
 
@@ -64,7 +64,7 @@
 - 详细文档：[uninstall-docker.md](middleware-components/container/docker/uninstall/uninstall-docker.md)
     - Docker的完整卸载流程，包括停止服务、移除网卡、删除安装包与残留文件
 
-### K8S（Kubernetes）
+### 1.2.2. K8S（Kubernetes）
 
 - 容器编排平台，实现跨主机多容器的弹性编排部署
 
@@ -82,25 +82,25 @@
 
 ---
 
-## 数据库（database）
+## 1.3. 数据库（database）
 
 - 数据库相关的组件与ORM框架，包括关系型数据库、NoSQL数据库、ORM映射框架等
 
-### Mybatis
+### 1.3.1. Mybatis
 
 - Java持久层ORM框架
 
 - 详细文档：[mybatis.md](middleware-components/database/mybatis/mybatis.md)
     - Mybatis常用XML语法详解，包括springboot+mybatis集成、XML文件结构、CRUD节点、动态SQL等
 
-### Mybatis-Plus
+### 1.3.2. Mybatis-Plus
 
 - 基于Mybatis增强的快速开发ORM框架
 
 - 详细文档：[mybatis-plus.md](middleware-components/database/mybatis-plus/mybatis-plus.md)
     - Mybatis-Plus常用语法，包括代码组织形式（bean/service/mapper）、wrapper/lambda-wrapper包装器等
 
-### NoSQL数据库
+### 1.3.3. NoSQL数据库
 
 - 非关系型数据库，包括MongoDB文档数据库、Redis缓存数据库
 
@@ -113,11 +113,11 @@
 - 详细文档：[redis6.md](middleware-components/database/nosql/redis/redis6.md)
     - Redis6入门，包括环境搭建、配置密码、后台运行、客户端验证等
 
-### 关系型数据库（RDB）
+### 1.3.4. 关系型数据库（RDB）
 
 - 关系型数据库及其相关工具
 
-#### MySQL
+#### 1.3.4.1. MySQL
 
 - 中小型项目常用的关系型数据库
 
@@ -133,7 +133,7 @@
 - 详细文档：[readme.md](middleware-components/database/rdb/mysql/mysql8-backup-suit/readme.md)
     - MySQL关键表备份工具集，包括mysqldump备份恢复脚本、定时备份配置等
 
-#### Oracle
+#### 1.3.4.2. Oracle
 
 - 企业级关系型数据库
 
@@ -143,7 +143,7 @@
 - 详细文档：[oracle-perf.md](middleware-components/database/rdb/oracle/oracle-perf.md)
     - Oracle执行分析，包括执行计划解析、锁查询等
 
-#### Mybatis数据库适配
+#### 1.3.4.3. Mybatis数据库适配
 
 - Mybatis针对不同数据库的适配技巧
 
@@ -158,7 +158,7 @@
 
 ---
 
-## Doris
+## 1.4. Doris
 
 - 实时分析MPP分布式查询框架
 
@@ -167,7 +167,7 @@
 
 ---
 
-## Gzip
+## 1.5. Gzip
 
 - 数据压缩配置
 
@@ -176,11 +176,11 @@
 
 ---
 
-## 监控（monitor）
+## 1.6. 监控（monitor）
 
 - 运维监控与可视化平台
 
-### Prometheus + Grafana
+### 1.6.1. Prometheus + Grafana
 
 - 运维监控指标采集与数据可视化平台
 
@@ -192,25 +192,25 @@
 
 ---
 
-## 消息队列（mq）
+## 1.7. 消息队列（mq）
 
 - 消息队列中间件，用于异步通信与解耦
 
-### Kafka
+### 1.7.1. Kafka
 
 - 高性能消息队列，主打大数据传输
 
 - 详细文档：[kafka.md](middleware-components/mq/kafka/kafka.md)
     - Kafka入门，包括环境搭建、单机配置、生产者与消费者验证
 
-### RabbitMQ
+### 1.7.2. RabbitMQ
 
 - 基于Erlang的消息队列服务
 
 - 详细文档：[rabbitmq.md](middleware-components/mq/rabbitmq/rabbitmq.md)
     - RabbitMQ安装与配置，包括Windows和Linux环境下Erlang与RabbitMQ的安装、管理插件启用等
 
-### RocketMQ
+### 1.7.3. RocketMQ
 
 - 金融级别高性能消息队列
 
@@ -219,18 +219,18 @@
 
 ---
 
-## 对象存储（oss）
+## 1.8. 对象存储（oss）
 
 - 对象存储服务
 
-### Ceph
+### 1.8.1. Ceph
 
 - 分布式统一存储系统
 
 - 详细文档：[ceph.md](middleware-components/oss/ceph/ceph.md)
     - Ceph分布式存储简介，包括组件组成（Monitor/Manager/OSD/MDS）与基本运维命令
 
-### MinIO
+### 1.8.2. MinIO
 
 - 轻量级对象存储服务
 
@@ -239,18 +239,18 @@
 
 ---
 
-## 其他（others）
+## 1.9. 其他（others）
 
 - 其他工具与规范
 
-### Git工作流
+### 1.9.1. Git工作流
 
 - Git版本控制的工作流规范
 
 - 详细文档：[git-flow.md](middleware-components/others/git/git-flow.md)
     - Git工作流规范，包括敏捷开发(Scrum)流程、分支模型（release/test/request/feature/hotfix/publish）、使用准则等
 
-### GitHub
+### 1.9.2. GitHub
 
 - GitHub相关工具与使用
 
@@ -259,18 +259,18 @@
 
 ---
 
-## Web服务器（web-server）
+## 1.10. Web服务器（web-server）
 
 - Web应用服务器与反向代理
 
-### Jar
+### 1.10.1. Jar
 
 - Java Jar包的运行管理
 
 - 详细文档：[jar.md](middleware-components/web-server/jar/jar.md)
     - Jar包启停脚本，包括启动、停止、重启三个脚本的编写
 
-### Nginx
+### 1.10.2. Nginx
 
 - 高性能反向代理与Web服务器
 
@@ -283,7 +283,7 @@
 - 详细文档：[install-nginx.md](middleware-components/web-server/nginx/pkgs/install-nginx.md)
     - Nginx实现代理任意网址的转发，包括set-misc-nginx-module模块安装与跨域转发配置
 
-### Tomcat
+### 1.10.3. Tomcat
 
 - Java Web应用服务器
 
@@ -292,11 +292,11 @@
 
 ---
 
-# 操作系统（operation-system）
+# 2. 操作系统（operation-system）
 
 - 操作系统相关的文档，包括Linux和Windows系统的常用命令与配置
 
-## Linux
+## 2.1. Linux
 
 - Linux操作系统常用命令与服务配置
 
@@ -336,7 +336,7 @@
 - 详细文档：[xcall.sh](operation-system/linux/xcall.sh)
     - 多主机命令批量执行脚本
 
-## Windows
+## 2.2. Windows
 
 - Windows操作系统常用命令与工具
 
@@ -348,11 +348,11 @@
 
 ---
 
-# 编程语言（programming-language）
+# 3. 编程语言（programming-language）
 
 - 编程语言直接相关的文档
 
-## Git
+## 3.1. Git
 
 - Git版本控制工具
 
@@ -361,7 +361,7 @@
 
 ---
 
-## Go语言
+## 3.2. Go语言
 
 - Go语言（Golang）相关文档，一门简洁高效的编程语言
 
@@ -382,11 +382,11 @@
 
 ---
 
-## JVM生态
+## 3.3. JVM生态
 
 - 运行于JVM之上的语言与工具
 
-### Java
+### 3.3.1. Java
 
 - Java开发相关文档
 
@@ -396,14 +396,14 @@
 - 详细文档：[java8.md（开发）](programming-language/jvm/java/java8/use/java8.md)
     - Java开发指南，包括语言构成、开发规范（命名规范、代码组织、面向抽象设计）等
 
-### Maven
+### 3.3.2. Maven
 
 - Java项目依赖管理器
 
 - 详细文档：[maven.md](programming-language/jvm/maven/maven.md)
     - Maven依赖管理器，包括安装配置、IDEA集成、命令行使用（clean/package/install/deploy）、pom.xml编写等
 
-### Scala
+### 3.3.3. Scala
 
 - JVM上的函数式编程语言
 
@@ -412,7 +412,7 @@
 
 ---
 
-## Python
+## 3.4. Python
 
 - Python编程语言
 
@@ -421,7 +421,7 @@
 
 ---
 
-## SQL
+## 3.5. SQL
 
 - SQL数据库相关
 
@@ -430,7 +430,7 @@
 
 ---
 
-## Web前端
+## 3.6. Web前端
 
 - Web前端开发相关
 
@@ -445,9 +445,9 @@
 
 ---
 
-# 学习
+# 4. 学习
 
-## 编译原理（语法规则）
+## 4.1. 编译原理（语法规则）
 
 - antlr4 语法辅助生成工具
 
@@ -460,9 +460,9 @@
     - IDEA 家族（IDEA/PyCharm/Goland/...）等集成编译器上的自定义脚本语言开发流程
     - 包含，语言高亮、语言文件、补全、注释、折叠等
 
-## 软件考试
+## 4.2. 软件考试
 
-### 高级
+### 4.2.1. 高级
 
 - 高级软件考试
 
